@@ -15,6 +15,8 @@ import (
 )
 
 func TestRun(t *testing.T) {
+	t.Setenv("TZ", "UTC")
+
 	ctx := context.Background()
 
 	path := t.TempDir()
@@ -197,7 +199,7 @@ func TestRun(t *testing.T) {
       "Value": 100
     }
   ],
-  "At": "2020-01-02T09:00:00+09:00"
+  "At": "2020-01-02T00:00:00Z"
 }
 `, buf.String())
 	})
