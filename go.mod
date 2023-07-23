@@ -9,7 +9,7 @@ require (
 	github.com/influxdata/line-protocol v0.0.0-20200327222509-2487e7298839
 	github.com/jarcoal/httpmock v1.3.0
 	github.com/notomo/httpwriter v0.0.0-20230402073442-90e3c7ef0233
-	github.com/stretchr/testify v1.8.1
+	github.com/stretchr/testify v1.8.4
 	github.com/urfave/cli/v2 v2.25.7
 	golang.org/x/oauth2 v0.10.0
 	google.golang.org/api v0.130.0
