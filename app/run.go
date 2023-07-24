@@ -10,6 +10,7 @@ import (
 	"github.com/notomo/gmailagg/app/extractor"
 	"github.com/notomo/gmailagg/pkg/gmailext"
 	"github.com/notomo/gmailagg/pkg/influxdb"
+	"google.golang.org/api/gmail/v1"
 )
 
 func Run(
@@ -48,18 +49,27 @@ func Run(
 		return fmt.Errorf("new gmail service: %w", err)
 	}
 
-	for _, measurement := range measurements {
-		if err := extractor.Do(
+	extractors, err := extractor.List(measurements)
+	if err != nil {
+		return fmt.Errorf("extractor list: %w", err)
+	}
+
+	for _, e := range extractors {
+		if err := gmailext.Iter(
 			ctx,
 			service,
 			"me",
-			measurement,
-			func(ctx context.Context, points ...influxdb.Point) error {
+			e.Query,
+			func(ctx context.Context, message *gmail.Message) (bool, error) {
+				points, err := e.Convert(message)
+				if err != nil {
+					return false, err
+				}
 				influxdbWriter.Write(ctx, points...)
-				return nil
+				return true, nil
 			},
 		); err != nil {
-			return fmt.Errorf("extractor do: %w", err)
+			return fmt.Errorf("gmailext iter: %w", err)
 		}
 	}
 

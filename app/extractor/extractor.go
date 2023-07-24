@@ -10,13 +10,33 @@ import (
 	"google.golang.org/api/gmail/v1"
 )
 
-type Extractor func(*gmail.Message) ([]influxdb.Point, error)
+type Extractor struct {
+	Query   string
+	Convert func(*gmail.Message) ([]influxdb.Point, error)
+}
+
+func List(
+	measurements []Measurement,
+) ([]Extractor, error) {
+	extractors := []Extractor{}
+	for _, measurement := range measurements {
+		for _, aggregation := range measurement.Aggregations {
+			e, err := toExtractor(measurement.Name, aggregation.Query, aggregation.Rules, aggregation.Tags)
+			if err != nil {
+				return nil, err
+			}
+			extractors = append(extractors, *e)
+		}
+	}
+	return extractors, nil
+}
 
 func toExtractor(
 	measurementName string,
+	query string,
 	rules []AggregationRule,
 	baseTags map[string]string,
-) (Extractor, error) {
+) (*Extractor, error) {
 	funcs := []func(*gmail.Message) (*influxdb.Point, error){}
 	for _, rule := range rules {
 		regex, err := regexp.Compile(rule.Pattern)
@@ -36,7 +56,7 @@ func toExtractor(
 				tags[k] = v
 			}
 
-			matches := regex.FindStringSubmatch(string(body))
+			matches := regex.FindStringSubmatch(body)
 			matchesCount := len(matches)
 			for i, name := range regex.SubexpNames() {
 				if i == 0 || name == "" || matchesCount <= i {
@@ -75,7 +95,7 @@ func toExtractor(
 		funcs = append(funcs, f)
 	}
 
-	return func(message *gmail.Message) ([]influxdb.Point, error) {
+	convert := func(message *gmail.Message) ([]influxdb.Point, error) {
 		points := []influxdb.Point{}
 		for _, f := range funcs {
 			point, err := f(message)
@@ -87,5 +107,9 @@ func toExtractor(
 			}
 		}
 		return points, nil
+	}
+	return &Extractor{
+		Query:   query,
+		Convert: convert,
 	}, nil
 }
