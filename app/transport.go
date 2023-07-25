@@ -7,9 +7,9 @@ import (
 	"github.com/notomo/httpwriter"
 )
 
-func LogTransport(logDirPath string, baseTransport http.RoundTripper) *httpwriter.Transport {
+func LogTransport(logDirPath string, baseTransport http.RoundTripper) http.RoundTripper {
 	if logDirPath == "" {
-		return nil
+		return baseTransport
 	}
 
 	logger := &httpretty.Logger{
