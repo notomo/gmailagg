@@ -2,13 +2,19 @@ package gmailext
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
+	"golang.org/x/sync/errgroup"
 	"google.golang.org/api/gmail/v1"
 )
 
 const (
 	limitPerRequest = 500
+)
+
+var (
+	errBreak = fmt.Errorf("break")
 )
 
 func Iter(
@@ -32,19 +38,28 @@ func Iter(
 		return fmt.Errorf("list gmail messages: %w", err)
 	}
 
+	eg, ctx := errgroup.WithContext(ctx)
+	eg.SetLimit(4)
 	for _, messageID := range messageIDs {
-		message, err := Get(ctx, service, userID, messageID)
-		if err != nil {
-			return fmt.Errorf("get one gmail message: %w", err)
-		}
+		messageID := messageID
+		eg.Go(func() error {
+			message, err := Get(ctx, service, userID, messageID)
+			if err != nil {
+				return fmt.Errorf("get one gmail message: %w", err)
+			}
 
-		next, err := process(ctx, message)
-		if err != nil {
-			return err
-		}
-		if !next {
-			break
-		}
+			next, err := process(ctx, message)
+			if err != nil {
+				return err
+			}
+			if !next {
+				return errBreak
+			}
+			return nil
+		})
+	}
+	if err := eg.Wait(); err != nil && !errors.Is(err, errBreak) {
+		return err
 	}
 
 	return nil
