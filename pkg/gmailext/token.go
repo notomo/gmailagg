@@ -12,10 +12,6 @@ import (
 	"golang.org/x/oauth2"
 )
 
-type Browser interface {
-	Open(url string) error
-}
-
 func Authorize(
 	ctx context.Context,
 	credentialsJsonPath string,
