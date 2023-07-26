@@ -4,26 +4,26 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 	"os"
 	"path/filepath"
 
 	"github.com/adrg/xdg"
+	"github.com/notomo/gmailagg/pkg/browser"
 	"github.com/notomo/gmailagg/pkg/gmailext"
 )
 
 func Authorize(
 	ctx context.Context,
 	credentialsJsonPath string,
-	messageWriter io.Writer,
 	tokenFilePath string,
+	opener browser.Opener,
 	baseTransport http.RoundTripper, // TODO: use
 ) error {
 	token, err := gmailext.Authorize(
 		ctx,
 		credentialsJsonPath,
-		messageWriter,
+		opener,
 	)
 	if err != nil {
 		return fmt.Errorf("gmail authorize: %w", err)

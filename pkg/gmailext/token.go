@@ -4,17 +4,21 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"io"
 	"net/http"
 
+	"github.com/notomo/gmailagg/pkg/browser"
 	"github.com/notomo/gmailagg/pkg/httpext"
 	"golang.org/x/oauth2"
 )
 
+type Browser interface {
+	Open(url string) error
+}
+
 func Authorize(
 	ctx context.Context,
 	credentialsJsonPath string,
-	messageWriter io.Writer,
+	opener browser.Opener,
 ) (token *oauth2.Token, retErr error) {
 	config, err := getOauth2Config(credentialsJsonPath)
 	if err != nil {
@@ -55,12 +59,8 @@ func Authorize(
 
 	config.RedirectURL = url + "/callback"
 	authURL := config.AuthCodeURL("state-token", oauth2.AccessTypeOffline)
-	message := fmt.Sprintf(`Go to the following link in your browser then type the authorization code:
-%s
-`, authURL)
-	// TODO: open browser
-	if _, err := messageWriter.Write([]byte(message)); err != nil {
-		return nil, fmt.Errorf("write message: %w", err)
+	if err := opener.Open(ctx, authURL); err != nil {
+		return nil, fmt.Errorf("browser open: %w", err)
 	}
 
 	authCode := <-authCodeReceiver

@@ -8,6 +8,7 @@ import (
 	"os"
 
 	"github.com/notomo/gmailagg/app"
+	"github.com/notomo/gmailagg/pkg/browser"
 	"github.com/urfave/cli/v2"
 )
 
@@ -47,8 +48,8 @@ func main() {
 					if err := app.Authorize(
 						c.Context,
 						config.GmailCredentialsPath,
-						os.Stdout,
 						app.TokenFilePath(),
+						browser.New(os.Stdout, os.Stderr),
 						app.LogTransport(c.String(paramLogDir), http.DefaultTransport),
 					); err != nil {
 						return fmt.Errorf("authorize: %w", err)
