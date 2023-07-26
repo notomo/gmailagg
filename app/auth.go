@@ -17,7 +17,6 @@ func Authorize(
 	ctx context.Context,
 	credentialsJsonPath string,
 	messageWriter io.Writer,
-	inputReader io.Reader,
 	tokenFilePath string,
 	baseTransport http.RoundTripper, // TODO: use
 ) error {
@@ -25,7 +24,6 @@ func Authorize(
 		ctx,
 		credentialsJsonPath,
 		messageWriter,
-		inputReader,
 	)
 	if err != nil {
 		return fmt.Errorf("gmail authorize: %w", err)

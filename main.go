@@ -48,7 +48,6 @@ func main() {
 						c.Context,
 						config.GmailCredentialsPath,
 						os.Stdout,
-						os.Stdin,
 						app.TokenFilePath(),
 						app.LogTransport(c.String(paramLogDir), http.DefaultTransport),
 					); err != nil {
