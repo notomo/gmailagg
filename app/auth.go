@@ -18,12 +18,13 @@ func Authorize(
 	credentialsJsonPath string,
 	tokenFilePath string,
 	opener browser.Opener,
-	baseTransport http.RoundTripper, // TODO: use
+	baseTransport http.RoundTripper,
 ) error {
 	token, err := gmailext.Authorize(
 		ctx,
 		credentialsJsonPath,
 		opener,
+		baseTransport,
 	)
 	if err != nil {
 		return fmt.Errorf("gmail authorize: %w", err)
