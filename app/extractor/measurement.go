@@ -1,5 +1,10 @@
 package extractor
 
+import (
+	"fmt"
+	"strconv"
+)
+
 type Measurement struct {
 	Name         string
 	Aggregations []Aggregation
@@ -32,7 +37,34 @@ var (
 )
 
 type RuleMapping struct {
-	Type RuleMappingType
+	Type     RuleMappingType
+	DataType RuleMappingFieldDataType
+}
+
+func (m *RuleMapping) FieldValue(raw string) (any, error) {
+	switch m.DataType {
+	case RuleMappingFieldDataTypeFloat:
+		v, err := strconv.ParseFloat(raw, 64)
+		if err != nil {
+			return nil, err
+		}
+		return v, nil
+	case RuleMappingFieldDataTypeInteger:
+		v, err := strconv.Atoi(raw)
+		if err != nil {
+			return nil, err
+		}
+		return v, nil
+	case RuleMappingFieldDataTypeString:
+		return raw, nil
+	case RuleMappingFieldDataTypeBoolean:
+		v, err := strconv.ParseBool(raw)
+		if err != nil {
+			return nil, err
+		}
+		return v, nil
+	}
+	return nil, fmt.Errorf("unexpected data_type: %s", m.DataType)
 }
 
 type RuleMappingType string
@@ -40,4 +72,13 @@ type RuleMappingType string
 var (
 	RuleMappingTypeField = RuleMappingType("field")
 	RuleMappingTypeTag   = RuleMappingType("tag")
+)
+
+type RuleMappingFieldDataType string
+
+var (
+	RuleMappingFieldDataTypeFloat   = RuleMappingFieldDataType("float")
+	RuleMappingFieldDataTypeInteger = RuleMappingFieldDataType("integer")
+	RuleMappingFieldDataTypeString  = RuleMappingFieldDataType("string")
+	RuleMappingFieldDataTypeBoolean = RuleMappingFieldDataType("boolean")
 )

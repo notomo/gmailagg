@@ -130,7 +130,8 @@ func TestRun(t *testing.T) {
 								Pattern: `合計.*￥ (?P<amount>\d+)`,
 								Mappings: map[string]extractor.RuleMapping{
 									"amount": {
-										Type: extractor.RuleMappingTypeField,
+										Type:     extractor.RuleMappingTypeField,
+										DataType: extractor.RuleMappingFieldDataTypeInteger,
 									},
 								},
 							},

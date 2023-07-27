@@ -2,7 +2,6 @@ package extractor
 
 import (
 	"regexp"
-	"strconv"
 	"time"
 
 	"github.com/notomo/gmailagg/pkg/gmailext"
@@ -71,7 +70,7 @@ func toExtractor(
 
 				switch mapping.Type {
 				case RuleMappingTypeField:
-					v, err := strconv.Atoi(match)
+					v, err := mapping.FieldValue(match)
 					if err != nil {
 						return nil, err
 					}

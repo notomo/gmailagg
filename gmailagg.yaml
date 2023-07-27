@@ -9,6 +9,7 @@ measurements:
             mappings:
               amount:
                 type: field
+                data_type: integer
         tags:
           shop: example
 
