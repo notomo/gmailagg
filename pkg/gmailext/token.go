@@ -49,10 +49,10 @@ func Authorize(
 	if err != nil {
 		return nil, fmt.Errorf("new server: %w", err)
 	}
+
+	serveErr := make(chan error)
 	go func() {
-		if err := server.Serve(listener); err != nil {
-			retErr = errors.Join(retErr, err)
-		}
+		serveErr <- server.Serve(listener)
 	}()
 
 	config.RedirectURL = url + "/callback"
@@ -73,6 +73,9 @@ func Authorize(
 
 	if err := server.Shutdown(ctx); err != nil {
 		return nil, fmt.Errorf("server shutdown: %w", err)
+	}
+	if err := <-serveErr; err != nil && !errors.Is(err, http.ErrServerClosed) {
+		return nil, err
 	}
 
 	return token, nil
