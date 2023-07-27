@@ -1,5 +1,9 @@
+TEST_OPTS:=
 test:
-	go test -v ./...
+	go test ${TEST_OPTS} -v ./...
+
+lint:
+	go vet ./...
 
 CONFIG:=gmailagg.yaml
 LOG_DIR:=/tmp/gmailagg
