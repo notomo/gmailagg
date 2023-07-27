@@ -10,6 +10,7 @@ import (
 
 	"github.com/jarcoal/httpmock"
 	"github.com/notomo/gmailagg/app/extractor"
+	"github.com/notomo/gmailagg/pkg/gmailext/gmailtest"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -21,43 +22,17 @@ func TestRun(t *testing.T) {
 
 	path := t.TempDir()
 
-	// TODO: test helper
-
 	credentialsJsonPath := filepath.Join(path, "credentials.json")
-	require.NoError(t, os.WriteFile(credentialsJsonPath, []byte(`{
-  "installed": {
-    "client_id": "888888888888-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.apps.googleusercontent.com",
-    "project_id": "test",
-    "auth_uri": "https://accounts.google.com/o/oauth2/auth",
-    "token_uri": "https://oauth2.googleapis.com/token",
-    "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
-    "client_secret": "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
-    "redirect_uris": [
-      "http://localhost"
-    ]
-  }
-}`), 0700))
+	require.NoError(t, os.WriteFile(credentialsJsonPath, gmailtest.CredentialsJSON(), 0700))
 
 	tokenFilePath := filepath.Join(path, "token.json")
-	require.NoError(t, os.WriteFile(tokenFilePath, []byte(`{
-  "access_token": "XXXX.XXXXXXXXXXXXXXXXXXXXXXXXXXXXX-XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
-  "token_type": "Bearer",
-  "refresh_token": "1//XXXXXXXXXXXXXXXXXXXXXXXXXXXX-XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX-XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
-  "expiry": "2000-01-01T00:00:00.0000000+09:00"
-}`), 0700))
+	require.NoError(t, os.WriteFile(tokenFilePath, gmailtest.TokenJSON(), 0700))
 
 	t.Run("dry run", func(t *testing.T) {
 		transport := httpmock.NewMockTransport()
-		transport.RegisterResponder(http.MethodPost, "https://oauth2.googleapis.com/token",
-			httpmock.NewStringResponder(http.StatusOK, `{
-  "access_token": "XXXX.XXXXXXXXXXXXXXXXXXXXXXXXXXXXX-XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
-  "expires_in": 3599,
-  "refresh_token": "1//XXXXXXXXXXXXXXXXXXXXXXXXXXXX-XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX-XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
-  "scope": "https://www.googleapis.com/auth/gmail.readonly",
-  "token_type": "Bearer"
-}`),
-		)
+		gmailtest.RegisterTokenResponse(transport)
 
+		// TODO: test helper
 		transport.RegisterResponder(http.MethodGet, "https://gmail.googleapis.com/gmail/v1/users/me/messages",
 			httpmock.NewStringResponder(http.StatusOK, `{
   "messages": [
