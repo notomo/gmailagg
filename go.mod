@@ -6,7 +6,6 @@ require (
 	github.com/adrg/xdg v0.4.0
 	github.com/henvic/httpretty v0.1.2
 	github.com/influxdata/influxdb-client-go/v2 v2.12.3
-	github.com/influxdata/line-protocol v0.0.0-20200327222509-2487e7298839
 	github.com/jarcoal/httpmock v1.3.0
 	github.com/notomo/httpwriter v0.0.0-20230402073442-90e3c7ef0233
 	github.com/stretchr/testify v1.8.4
@@ -29,6 +28,7 @@ require (
 	github.com/google/uuid v1.3.0 // indirect
 	github.com/googleapis/enterprise-certificate-proxy v0.2.5 // indirect
 	github.com/googleapis/gax-go/v2 v2.12.0 // indirect
+	github.com/influxdata/line-protocol v0.0.0-20200327222509-2487e7298839 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
