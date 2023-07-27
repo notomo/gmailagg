@@ -162,20 +162,20 @@ func TestRun(t *testing.T) {
 		))
 
 		assert.Equal(t, `{
-  "Measurement": "measurementName",
-  "Tags": [
+  "measurement": "measurementName",
+  "tags": [
     {
-      "Key": "tagKey1",
-      "Value": "tagValue"
+      "key": "tagKey1",
+      "value": "tagValue"
     }
   ],
-  "Fields": [
+  "fields": [
     {
-      "Key": "amount",
-      "Value": 100
+      "key": "amount",
+      "value": 100
     }
   ],
-  "At": "2020-01-02T00:00:00Z"
+  "at": "2020-01-02T00:00:00Z"
 }
 `, buf.String())
 	})
