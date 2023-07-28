@@ -3,7 +3,6 @@ package app
 import (
 	"bytes"
 	"context"
-	"net/http"
 	"os"
 	"path/filepath"
 	"testing"
@@ -31,91 +30,24 @@ func TestRun(t *testing.T) {
 	t.Run("dry run", func(t *testing.T) {
 		transport := httpmock.NewMockTransport()
 		gmailtest.RegisterTokenResponse(transport)
-
-		// TODO: test helper
-		transport.RegisterResponder(http.MethodGet, "https://gmail.googleapis.com/gmail/v1/users/me/messages",
-			httpmock.NewStringResponder(http.StatusOK, `{
-  "messages": [
-    {
-      "id": "1111111111111111",
-      "threadId": "ttttttttttttttt1"
-    },
-    {
-      "id": "2222222222222222",
-      "threadId": "ttttttttttttttt2"
-    }
-  ],
-  "resultSizeEstimate": 2
-}`),
+		gmailtest.RegisterMessageResponse(
+			t,
+			transport,
+			gmailtest.Message{
+				ID:        "1111111111111111",
+				ThreadID:  "ttttttttttttttt1",
+				Body:      `合計 ￥ 100`,
+				Timestamp: "2020-01-02T00:00:00Z",
+			},
+			gmailtest.Message{
+				ID:        "2222222222222222",
+				ThreadID:  "ttttttttttttttt2",
+				Body:      `others`,
+				Timestamp: "2020-01-02T00:00:00Z",
+			},
 		)
 
-		transport.RegisterResponder(http.MethodGet, "https://gmail.googleapis.com/gmail/v1/users/me/messages/1111111111111111",
-			httpmock.NewStringResponder(http.StatusOK, `{
-  "payload": {
-    "body": {
-      "size": 0,
-      "data": ""
-    },
-    "parts": [
-      {
-        "partId": "0",
-        "mimeType": "text/plain",
-        "filename": "",
-        "headers": [
-          {
-            "name": "Content-Type",
-            "value": "text/plain; charset=utf-8"
-          },
-          {
-            "name": "Content-Transfer-Encoding",
-            "value": "base64"
-          }
-        ],
-        "body": {
-          "size": 0,
-          "data": "5ZCI6KiILirvv6UgMTAw"
-        }
-      }
-    ]
-  },
-  "internalDate": "1577923200000"
-}`),
-		)
-
-		transport.RegisterResponder(http.MethodGet, "https://gmail.googleapis.com/gmail/v1/users/me/messages/2222222222222222",
-			httpmock.NewStringResponder(http.StatusOK, `{
-  "payload": {
-    "body": {
-      "size": 0,
-      "data": ""
-    },
-    "parts": [
-      {
-        "partId": "0",
-        "mimeType": "text/plain",
-        "filename": "",
-        "headers": [
-          {
-            "name": "Content-Type",
-            "value": "text/plain; charset=utf-8"
-          },
-          {
-            "name": "Content-Transfer-Encoding",
-            "value": "base64"
-          }
-        ],
-        "body": {
-          "size": 0,
-          "data": "aWdub3JlZA=="
-        }
-      }
-    ]
-  },
-  "internalDate": "1577923200000"
-}`),
-		)
-
-		var buf bytes.Buffer
+		var output bytes.Buffer
 
 		measurements := []extractor.Measurement{
 			{
@@ -159,7 +91,7 @@ func TestRun(t *testing.T) {
 			influxdbOrg,
 			influxdbBucket,
 			LogTransport("/tmp/gmailaggtest", transport),
-			&buf,
+			&output,
 		))
 
 		assert.Equal(t, `{
@@ -178,10 +110,6 @@ func TestRun(t *testing.T) {
   ],
   "at": "2020-01-02T00:00:00Z"
 }
-`, buf.String())
-	})
-
-	t.Run("run", func(t *testing.T) {
-		t.Skip("TODO")
+`, output.String())
 	})
 }

@@ -27,7 +27,9 @@ func Token(t *testing.T) map[string]string {
 }
 
 func RegisterTokenResponse(transport *httpmock.MockTransport) {
-	transport.RegisterResponder(http.MethodPost, "https://oauth2.googleapis.com/token",
+	transport.RegisterResponder(
+		http.MethodPost,
+		"https://oauth2.googleapis.com/token",
 		httpmock.NewStringResponder(http.StatusOK, `{
   "access_token": "XXXX.XXXXXXXXXXXXXXXXXXXXXXXXXXXXX-XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
   "expires_in": 3599,
