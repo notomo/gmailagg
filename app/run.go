@@ -25,18 +25,13 @@ func Run(
 	baseTransport http.RoundTripper,
 	dryRunWriter io.Writer,
 ) (retErr error) {
-	influxdbClient := influxdb.NewClient(
+	influxdbWriter := influxdb.NewWriter(
 		influxdbServerURL,
 		influxdbAuthToken,
-		baseTransport,
-	)
-	defer influxdbClient.Close()
-
-	influxdbWriter := influxdb.NewWriter(
-		influxdbClient,
 		influxdbOrg,
 		influxdbBucket,
 		dryRunWriter,
+		baseTransport,
 	)
 	defer func() {
 		if err := influxdbWriter.Flush(ctx); err != nil {

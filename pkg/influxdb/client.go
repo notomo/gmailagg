@@ -11,13 +11,22 @@ import (
 	"github.com/influxdata/influxdb-client-go/v2/api"
 )
 
-func NewClient(
+type Writer struct {
+	client influxdb2.Client
+	api    api.WriteAPI
+	errCh  <-chan error
+}
+
+func NewWriter(
 	serverURL string,
 	authToken string,
+	org string,
+	bucket string,
+	dryRunWriter io.Writer,
 	baseTransport http.RoundTripper,
-) influxdb2.Client {
+) *Writer {
 	opts := influxdb2.DefaultOptions()
-	return influxdb2.NewClientWithOptions(
+	client := influxdb2.NewClientWithOptions(
 		serverURL,
 		authToken,
 		opts.SetHTTPClient(&http.Client{
@@ -25,19 +34,7 @@ func NewClient(
 			Transport: baseTransport,
 		}),
 	)
-}
 
-type Writer struct {
-	api  api.WriteAPI
-	errs []error
-}
-
-func NewWriter(
-	client influxdb2.Client,
-	org string,
-	bucket string,
-	dryRunWriter io.Writer,
-) *Writer {
 	var api api.WriteAPI
 	if dryRunWriter != nil {
 		api = NewDryRunWriter(dryRunWriter)
@@ -45,16 +42,10 @@ func NewWriter(
 		api = client.WriteAPI(org, bucket)
 	}
 
-	errs := []error{}
-	go func() {
-		for err := range api.Errors() {
-			errs = append(errs, err)
-		}
-	}()
-
 	return &Writer{
-		api:  api,
-		errs: errs,
+		client: client,
+		api:    api,
+		errCh:  api.Errors(),
 	}
 }
 
@@ -77,6 +68,15 @@ func (w *Writer) Write(ctx context.Context, points ...Point) {
 }
 
 func (w *Writer) Flush(ctx context.Context) error {
+	errs := []error{}
+	go func() {
+		for err := range w.errCh {
+			errs = append(errs, err)
+		}
+	}()
+
 	w.api.Flush()
-	return errors.Join(w.errs...)
+	w.client.Close()
+
+	return errors.Join(errs...)
 }
