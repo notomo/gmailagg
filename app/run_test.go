@@ -3,13 +3,13 @@ package app
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"net/http"
 	"os"
 	"path/filepath"
 	"testing"
 
 	"github.com/jarcoal/httpmock"
-	"github.com/notomo/gmailagg/app/extractor"
 	"github.com/notomo/gmailagg/pkg/gmailext/gmailtest"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -27,6 +27,32 @@ func TestRun(t *testing.T) {
 
 	tokenFilePath := filepath.Join(path, "token.json")
 	require.NoError(t, os.WriteFile(tokenFilePath, gmailtest.TokenJSON(), 0700))
+
+	configPath := filepath.Join(path, "config.yaml")
+	configContent := fmt.Sprintf(`
+measurements:
+  - name: measurementName
+    aggregations:
+      - query: query
+        rules:
+          - type: regexp
+            target: body
+            pattern: 合計.*￥ (?P<amount>\d+)
+            mappings:
+              amount:
+                type: field
+                data_type: integer
+        tags:
+          tagKey1: tagValue
+
+gmailCredentialsPath: %s
+
+influxdb:
+  serverUrl: http://gmailagg-test-influxdb
+  org: test-org
+  bucket: test-bucket
+`, credentialsJsonPath)
+	require.NoError(t, os.WriteFile(configPath, []byte(configContent), 0700))
 
 	t.Run("dry run", func(t *testing.T) {
 		transport := httpmock.NewMockTransport()
@@ -48,43 +74,19 @@ func TestRun(t *testing.T) {
 			},
 		)
 
-		measurements := []extractor.Measurement{
-			{
-				Name: "measurementName",
-				Aggregations: []extractor.Aggregation{
-					{
-						Query: "query",
-						Rules: []extractor.AggregationRule{
-							{
-								Type:    extractor.RuleTypeRegexp,
-								Target:  extractor.TargetTypeBody,
-								Pattern: `合計.*￥ (?P<amount>\d+)`,
-								Mappings: map[string]extractor.RuleMapping{
-									"amount": {
-										Type:     extractor.RuleMappingTypeField,
-										DataType: extractor.RuleMappingFieldDataTypeInteger,
-									},
-								},
-							},
-						},
-						Tags: map[string]string{
-							"tagKey1": "tagValue",
-						},
-					},
-				},
-			},
-		}
+		config, err := ReadConfig(configPath)
+		require.NoError(t, err)
 
 		var output bytes.Buffer
 		require.NoError(t, Run(
 			ctx,
-			credentialsJsonPath,
+			config.GmailCredentialsPath,
 			tokenFilePath,
-			measurements,
-			"",
-			"",
-			"",
-			"",
+			config.Measurements,
+			config.Influxdb.ServerURL,
+			"auth-token",
+			config.Influxdb.Org,
+			config.Influxdb.Bucket,
 			LogTransport("/tmp/gmailaggtest", transport),
 			&output,
 		))
@@ -134,47 +136,18 @@ func TestRun(t *testing.T) {
 			httpmock.NewStringResponder(http.StatusOK, `{}`),
 		)
 
-		measurements := []extractor.Measurement{
-			{
-				Name: "measurementName",
-				Aggregations: []extractor.Aggregation{
-					{
-						Query: "query",
-						Rules: []extractor.AggregationRule{
-							{
-								Type:    extractor.RuleTypeRegexp,
-								Target:  extractor.TargetTypeBody,
-								Pattern: `合計.*￥ (?P<amount>\d+)`,
-								Mappings: map[string]extractor.RuleMapping{
-									"amount": {
-										Type:     extractor.RuleMappingTypeField,
-										DataType: extractor.RuleMappingFieldDataTypeInteger,
-									},
-								},
-							},
-						},
-						Tags: map[string]string{
-							"tagKey1": "tagValue",
-						},
-					},
-				},
-			},
-		}
-
-		influxdbServerURL := "http://gmailagg-test-influxdb"
-		influxdbAuthToken := "auth-token"
-		influxdbOrg := "test-org"
-		influxdbBucket := "test-bucket"
+		config, err := ReadConfig(configPath)
+		require.NoError(t, err)
 
 		require.NoError(t, Run(
 			ctx,
-			credentialsJsonPath,
+			config.GmailCredentialsPath,
 			tokenFilePath,
-			measurements,
-			influxdbServerURL,
-			influxdbAuthToken,
-			influxdbOrg,
-			influxdbBucket,
+			config.Measurements,
+			config.Influxdb.ServerURL,
+			"auth-token",
+			config.Influxdb.Org,
+			config.Influxdb.Bucket,
 			LogTransport("/tmp/gmailaggtest", transport),
 			nil,
 		))
