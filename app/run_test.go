@@ -3,6 +3,7 @@ package app
 import (
 	"bytes"
 	"context"
+	"net/http"
 	"os"
 	"path/filepath"
 	"testing"
@@ -43,11 +44,9 @@ func TestRun(t *testing.T) {
 				ID:        "2222222222222222",
 				ThreadID:  "ttttttttttttttt2",
 				Body:      `others`,
-				Timestamp: "2020-01-02T00:00:00Z",
+				Timestamp: "2020-01-03T00:00:00Z",
 			},
 		)
-
-		var output bytes.Buffer
 
 		measurements := []extractor.Measurement{
 			{
@@ -76,20 +75,16 @@ func TestRun(t *testing.T) {
 			},
 		}
 
-		influxdbServerURL := ""
-		influxdbAuthToken := ""
-		influxdbOrg := ""
-		influxdbBucket := ""
-
+		var output bytes.Buffer
 		require.NoError(t, Run(
 			ctx,
 			credentialsJsonPath,
 			tokenFilePath,
 			measurements,
-			influxdbServerURL,
-			influxdbAuthToken,
-			influxdbOrg,
-			influxdbBucket,
+			"",
+			"",
+			"",
+			"",
 			LogTransport("/tmp/gmailaggtest", transport),
 			&output,
 		))
@@ -111,5 +106,77 @@ func TestRun(t *testing.T) {
   "at": "2020-01-02T00:00:00Z"
 }
 `, output.String())
+	})
+
+	t.Run("run", func(t *testing.T) {
+		transport := httpmock.NewMockTransport()
+		gmailtest.RegisterTokenResponse(transport)
+		gmailtest.RegisterMessageResponse(
+			t,
+			transport,
+			gmailtest.Message{
+				ID:        "1111111111111111",
+				ThreadID:  "ttttttttttttttt1",
+				Body:      `合計 ￥ 100`,
+				Timestamp: "2020-01-02T00:00:00Z",
+			},
+			gmailtest.Message{
+				ID:        "2222222222222222",
+				ThreadID:  "ttttttttttttttt2",
+				Body:      `others`,
+				Timestamp: "2020-01-03T00:00:00Z",
+			},
+		)
+		transport.RegisterMatcherResponder(
+			http.MethodPost,
+			"http://gmailagg-test-influxdb/api/v2/write?bucket=test-bucket&org=test-org&precision=ns",
+			httpmock.BodyContainsString(`measurementName,tagKey1=tagValue amount=100i `+gmailtest.ToUnixMilli(t, "2020-01-02T00:00:00Z")),
+			httpmock.NewStringResponder(http.StatusOK, `{}`),
+		)
+
+		measurements := []extractor.Measurement{
+			{
+				Name: "measurementName",
+				Aggregations: []extractor.Aggregation{
+					{
+						Query: "query",
+						Rules: []extractor.AggregationRule{
+							{
+								Type:    extractor.RuleTypeRegexp,
+								Target:  extractor.TargetTypeBody,
+								Pattern: `合計.*￥ (?P<amount>\d+)`,
+								Mappings: map[string]extractor.RuleMapping{
+									"amount": {
+										Type:     extractor.RuleMappingTypeField,
+										DataType: extractor.RuleMappingFieldDataTypeInteger,
+									},
+								},
+							},
+						},
+						Tags: map[string]string{
+							"tagKey1": "tagValue",
+						},
+					},
+				},
+			},
+		}
+
+		influxdbServerURL := "http://gmailagg-test-influxdb"
+		influxdbAuthToken := "auth-token"
+		influxdbOrg := "test-org"
+		influxdbBucket := "test-bucket"
+
+		require.NoError(t, Run(
+			ctx,
+			credentialsJsonPath,
+			tokenFilePath,
+			measurements,
+			influxdbServerURL,
+			influxdbAuthToken,
+			influxdbOrg,
+			influxdbBucket,
+			LogTransport("/tmp/gmailaggtest", transport),
+			nil,
+		))
 	})
 }

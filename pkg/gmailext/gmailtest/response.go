@@ -53,12 +53,7 @@ func RegisterMessageResponse(
 	}
 
 	for _, message := range messages {
-		time, err := time.Parse(time.RFC3339, message.Timestamp)
-		if err != nil {
-			t.Fatal(err)
-		}
-		unixMilli := strconv.FormatInt(time.UnixMilli(), 10)
-
+		unixMilli := ToUnixMilli(t, message.Timestamp)
 		bodyData := base64.URLEncoding.EncodeToString([]byte(message.Body))
 
 		var body bytes.Buffer
@@ -103,4 +98,16 @@ func RegisterMessageResponse(
 			httpmock.NewStringResponder(http.StatusOK, body.String()),
 		)
 	}
+}
+
+func ToUnixMilli(
+	t *testing.T,
+	timestamp string,
+) string {
+	t.Helper()
+	time, err := time.Parse(time.RFC3339, timestamp)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return strconv.FormatInt(time.UnixMilli(), 10)
 }
