@@ -1,5 +1,6 @@
 TEST_OPTS:=
 test:
+	rm -rf /tmp/gmailaggtest
 	go test ${TEST_OPTS} -v ./...
 
 lint:
