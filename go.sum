@@ -105,6 +105,8 @@ github.com/mattn/go-isatty v0.0.12/go.mod h1:cbi8OIDigv2wuxKPP5vlRcQ1OAZbq2CE4Ky
 github.com/maxatome/go-testdeep v1.12.0 h1:Ql7Go8Tg0C1D/uMMX59LAoYK7LffeJQ6X2T04nTH68g=
 github.com/notomo/httpwriter v0.0.0-20230402073442-90e3c7ef0233 h1:57dxj5EbFbhVEEAJBoLBT5/B0DMPDiJxp71jOvdts4o=
 github.com/notomo/httpwriter v0.0.0-20230402073442-90e3c7ef0233/go.mod h1:bjl1iiJG02tD8wSeE0N1TbQsIr3PqOJEF3Xto33giFI=
+github.com/notomo/httpwriter v0.0.0-20230801001457-d247ac2be072 h1:nT8mp6n6qJZeHGjOwcz8oZyzW2ApN4oc73ephw6Os3Q=
+github.com/notomo/httpwriter v0.0.0-20230801001457-d247ac2be072/go.mod h1:bjl1iiJG02tD8wSeE0N1TbQsIr3PqOJEF3Xto33giFI=
 github.com/pkg/errors v0.8.1/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINEl0=
 github.com/pkg/errors v0.9.1 h1:FEBLx1zS214owpjy7qsBeixbURkuhQAwrK5UwLGTwt4=
 github.com/pkg/errors v0.9.1/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINEl0=

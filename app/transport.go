@@ -1,6 +1,7 @@
 package app
 
 import (
+	"io"
 	"net/http"
 
 	"github.com/henvic/httpretty"
@@ -12,21 +13,23 @@ func LogTransport(logDirPath string, baseTransport http.RoundTripper) http.Round
 		return baseTransport
 	}
 
-	logger := &httpretty.Logger{
-		Time:            true,
-		TLS:             false,
-		RequestHeader:   true,
-		RequestBody:     true,
-		ResponseHeader:  true,
-		ResponseBody:    true,
-		MaxResponseBody: 1000000,
-		Formatters:      []httpretty.Formatter{&httpretty.JSONFormatter{}},
-	}
 	return &httpwriter.Transport{
-		Transport: logger.RoundTripper(baseTransport),
+		TransportFactory: func(writer io.Writer) http.RoundTripper {
+			logger := &httpretty.Logger{
+				Time:            true,
+				TLS:             false,
+				RequestHeader:   true,
+				RequestBody:     true,
+				ResponseHeader:  true,
+				ResponseBody:    true,
+				MaxResponseBody: 1000000,
+				Formatters:      []httpretty.Formatter{&httpretty.JSONFormatter{}},
+			}
+			logger.SetOutput(writer)
+			return logger.RoundTripper(baseTransport)
+		},
 		GetWriter: httpwriter.MustDirectoryWriter(
 			&httpwriter.Directory{Path: logDirPath},
 		),
-		SetWriter: logger.SetOutput,
 	}
 }
