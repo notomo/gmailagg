@@ -1,18 +1,18 @@
 resource "google_service_account" "default" {
-  account_id   = "gmailagg"
+  account_id   = var.project_id
   display_name = "gmailagg compute engine instance service account"
 }
 
-resource "google_project_iam_member" "gmailagg-instance-log-writer" {
+resource "google_project_iam_member" "instance-log-writer" {
   role    = "roles/logging.logWriter"
   member  = "serviceAccount:${google_service_account.default.email}"
-  project = "gmailagg"
+  project = var.project_id
 }
 
-resource "google_project_iam_member" "gmailagg-instance-metrics-writer" {
+resource "google_project_iam_member" "instance-metrics-writer" {
   role    = "roles/monitoring.metricWriter"
   member  = "serviceAccount:${google_service_account.default.email}"
-  project = "gmailagg"
+  project = var.project_id
 }
 
 module "influxdb-container" {
@@ -29,19 +29,19 @@ module "influxdb-container" {
       },
       {
         name  = "DOCKER_INFLUXDB_INIT_USERNAME"
-        value = "admin"
+        value = var.influxdb_user_name
       },
       {
         name  = "DOCKER_INFLUXDB_INIT_PASSWORD"
-        value = "example-password"
+        value = var.influxdb_password
       },
       {
         name  = "DOCKER_INFLUXDB_INIT_ORG"
-        value = "example-org"
+        value = var.influxdb_org
       },
       {
         name  = "DOCKER_INFLUXDB_INIT_BUCKET"
-        value = "gmailagg"
+        value = var.influxdb_bucket
       },
     ]
 
@@ -66,16 +66,16 @@ module "influxdb-container" {
 }
 
 resource "google_compute_disk" "influxdb-data-disk" {
-  project = "gmailagg"
-  name    = "gmailagg-influxdb-data-disk"
+  project = var.project_id
+  name    = "${var.project_id}-influxdb-data-disk"
   type    = "pd-standard"
-  zone    = "us-west1-b"
+  zone    = var.zone
   size    = 20
 }
 
 resource "google_compute_instance" "default" {
-  name         = "gmailagg-instance"
-  machine_type = "e2-micro"
+  name         = "${var.project_id}-instance"
+  machine_type = var.machine_type
 
   can_ip_forward = true
 
