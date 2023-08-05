@@ -3,6 +3,18 @@ resource "google_service_account" "default" {
   display_name = "gmailagg compute engine instance service account"
 }
 
+resource "google_project_iam_member" "gmailagg-instance-log-writer" {
+  role    = "roles/logging.logWriter"
+  member  = "serviceAccount:${google_service_account.default.email}"
+  project = "gmailagg"
+}
+
+resource "google_project_iam_member" "gmailagg-instance-metrics-writer" {
+  role    = "roles/monitoring.metricWriter"
+  member  = "serviceAccount:${google_service_account.default.email}"
+  project = "gmailagg"
+}
+
 module "influxdb-container" {
   source  = "terraform-google-modules/container-vm/google"
   version = "~> 3.1"
@@ -53,6 +65,13 @@ module "influxdb-container" {
   ]
 }
 
+resource "google_compute_disk" "influxdb-data-disk" {
+  project = "gmailagg"
+  name    = "gmailagg-influxdb-data-disk"
+  type    = "pd-standard"
+  zone    = "us-west1-b"
+  size    = 20
+}
 
 resource "google_compute_instance" "default" {
   name         = "gmailagg-instance"
@@ -63,9 +82,15 @@ resource "google_compute_instance" "default" {
   boot_disk {
     initialize_params {
       image = module.influxdb-container.source_image
-      size  = 30
+      size  = 10
       type  = "pd-standard"
     }
+  }
+
+  attached_disk {
+    source      = google_compute_disk.influxdb-data-disk.self_link
+    device_name = "data-disk-0"
+    mode        = "READ_WRITE"
   }
 
   network_interface {
