@@ -24,8 +24,9 @@ variable "influxdb_user_name" {
 }
 
 variable "influxdb_password" {
-  type    = string
-  default = "example-password"
+  type      = string
+  default   = "example-password"
+  sensitive = true
 }
 
 variable "influxdb_org" {
