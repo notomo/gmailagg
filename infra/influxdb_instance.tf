@@ -102,6 +102,7 @@ resource "google_compute_instance" "default" {
     gce-container-declaration = module.influxdb-container.metadata_value
     google-logging-enabled    = true
     google-monitoring-enabled = true
+    user-data                 = data.template_file.cloud-init.rendered
   }
 
   service_account {
