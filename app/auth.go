@@ -15,14 +15,12 @@ import (
 
 func Authorize(
 	ctx context.Context,
-	credentialsJsonPath string,
 	tokenFilePath string,
 	opener browser.Opener,
 	baseTransport http.RoundTripper,
 ) error {
 	token, err := gmailext.Authorize(
 		ctx,
-		credentialsJsonPath,
 		opener,
 		baseTransport,
 	)

@@ -17,11 +17,10 @@ import (
 
 func NewService(
 	ctx context.Context,
-	credentialsJsonPath string,
 	tokenFilePath string,
 	baseTransport http.RoundTripper,
 ) (*gmail.Service, error) {
-	config, err := getOauth2Config(credentialsJsonPath)
+	config, err := getOauth2Config(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("get oauth2 config: %w", err)
 	}
@@ -61,16 +60,17 @@ func NewService(
 	return service, nil
 }
 
-func getOauth2Config(credentialsJsonPath string) (*oauth2.Config, error) {
-	credentialsJson, err := os.ReadFile(credentialsJsonPath)
+const gmailScope = gmail.GmailReadonlyScope
+
+func getOauth2Config(ctx context.Context) (*oauth2.Config, error) {
+	credentials, err := google.FindDefaultCredentials(ctx, gmailScope)
 	if err != nil {
-		return nil, fmt.Errorf("read gmail credentials file: %w", err)
+		return nil, err
 	}
 
-	config, err := google.ConfigFromJSON(credentialsJson, gmail.GmailReadonlyScope)
+	config, err := google.ConfigFromJSON(credentials.JSON, gmailScope)
 	if err != nil {
 		return nil, fmt.Errorf("config from json: %w", err)
 	}
-
 	return config, nil
 }

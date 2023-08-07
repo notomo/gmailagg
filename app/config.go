@@ -15,9 +15,8 @@ type Influxdb struct {
 }
 
 type Config struct {
-	GmailCredentialsPath string                  `yaml:"gmailCredentialsPath"`
-	Measurements         []extractor.Measurement `yaml:"measurements"`
-	Influxdb             Influxdb                `yaml:"influxdb"`
+	Measurements []extractor.Measurement `yaml:"measurements"`
+	Influxdb     Influxdb                `yaml:"influxdb"`
 }
 
 func ReadConfig(path string) (*Config, error) {

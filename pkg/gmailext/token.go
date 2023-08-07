@@ -14,11 +14,10 @@ import (
 
 func Authorize(
 	ctx context.Context,
-	credentialsJsonPath string,
 	opener browser.Opener,
 	baseTransport http.RoundTripper,
 ) (token *oauth2.Token, retErr error) {
-	config, err := getOauth2Config(credentialsJsonPath)
+	config, err := getOauth2Config(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("get oauth2 config: %w", err)
 	}

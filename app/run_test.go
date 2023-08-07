@@ -3,7 +3,6 @@ package app
 import (
 	"bytes"
 	"context"
-	"fmt"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -24,12 +23,13 @@ func TestRun(t *testing.T) {
 
 	credentialsJsonPath := filepath.Join(path, "credentials.json")
 	require.NoError(t, os.WriteFile(credentialsJsonPath, gmailtest.CredentialsJSON(), 0700))
+	t.Setenv("GOOGLE_APPLICATION_CREDENTIALS", credentialsJsonPath)
 
 	tokenFilePath := filepath.Join(path, "token.json")
 	require.NoError(t, os.WriteFile(tokenFilePath, gmailtest.TokenJSON(), 0700))
 
 	configPath := filepath.Join(path, "config.yaml")
-	configContent := fmt.Sprintf(`
+	configContent := `
 measurements:
   - name: measurementName
     aggregations:
@@ -45,13 +45,11 @@ measurements:
         tags:
           tagKey1: tagValue
 
-gmailCredentialsPath: %s
-
 influxdb:
   serverUrl: http://gmailagg-test-influxdb
   org: test-org
   bucket: test-bucket
-`, credentialsJsonPath)
+`
 	require.NoError(t, os.WriteFile(configPath, []byte(configContent), 0700))
 
 	t.Run("dry run", func(t *testing.T) {
@@ -80,7 +78,6 @@ influxdb:
 		var output bytes.Buffer
 		require.NoError(t, Run(
 			ctx,
-			config.GmailCredentialsPath,
 			tokenFilePath,
 			config.Measurements,
 			config.Influxdb.ServerURL,
@@ -141,7 +138,6 @@ influxdb:
 
 		require.NoError(t, Run(
 			ctx,
-			config.GmailCredentialsPath,
 			tokenFilePath,
 			config.Measurements,
 			config.Influxdb.ServerURL,

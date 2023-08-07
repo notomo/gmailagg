@@ -40,14 +40,8 @@ func main() {
 			{
 				Name: "auth",
 				Action: func(c *cli.Context) error {
-					config, err := app.ReadConfig(c.String(paramConfigFilePath))
-					if err != nil {
-						return fmt.Errorf("read config: %w", err)
-					}
-
 					if err := app.Authorize(
 						c.Context,
-						config.GmailCredentialsPath,
 						app.TokenFilePath(),
 						browser.New(os.Stdout, os.Stderr),
 						app.LogTransport(c.String(paramLogDir), http.DefaultTransport),
@@ -73,7 +67,6 @@ func main() {
 
 					if err := app.Run(
 						c.Context,
-						config.GmailCredentialsPath,
 						app.TokenFilePath(),
 						config.Measurements,
 						config.Influxdb.ServerURL,

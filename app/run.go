@@ -15,7 +15,6 @@ import (
 
 func Run(
 	ctx context.Context,
-	credentialsJsonPath string,
 	tokenFilePath string,
 	measurements []extractor.Measurement,
 	influxdbServerURL string,
@@ -39,7 +38,7 @@ func Run(
 		}
 	}()
 
-	service, err := gmailext.NewService(ctx, credentialsJsonPath, tokenFilePath, baseTransport)
+	service, err := gmailext.NewService(ctx, tokenFilePath, baseTransport)
 	if err != nil {
 		return fmt.Errorf("new gmail service: %w", err)
 	}

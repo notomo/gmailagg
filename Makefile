@@ -10,7 +10,7 @@ CONFIG:=gmailagg.yaml
 LOG_DIR:=/tmp/gmailagg
 _execute:
 	rm -rf ${LOG_DIR}
-	go run main.go --config=${CONFIG} --log-dir=${LOG_DIR} ${GMAILAGG_ARGS}
+	GOOGLE_APPLICATION_CREDENTIALS=.local/gmail/credentials.json go run main.go --config=${CONFIG} --log-dir=${LOG_DIR} ${GMAILAGG_ARGS}
 auth:
 	$(MAKE) _execute GMAILAGG_ARGS="auth"
 run:

@@ -13,8 +13,6 @@ measurements:
         tags:
           shop: example
 
-gmailCredentialsPath: .local/gmail/credentials.json
-
 influxdb:
   serverUrl: http://localhost:8086
   org: example-org
