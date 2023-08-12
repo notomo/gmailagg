@@ -6,7 +6,9 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"path/filepath"
 
+	"github.com/adrg/xdg"
 	"github.com/notomo/gmailagg/app"
 	"github.com/notomo/gmailagg/pkg/browser"
 	"github.com/urfave/cli/v2"
@@ -16,6 +18,7 @@ const (
 	paramConfigFilePath = "config"
 	paramDryRun         = "dry-run"
 	paramLogDir         = "log-dir"
+	paramTokenPath      = "token"
 )
 
 func main() {
@@ -33,6 +36,12 @@ func main() {
 				Required: false,
 				Usage:    "log directory (output log if not empty)",
 			},
+			&cli.StringFlag{
+				Name:     paramTokenPath,
+				Required: true,
+				Usage:    "token file path",
+				Value:    filepath.Join(xdg.ConfigHome, "gmailagg/token.json"),
+			},
 		},
 
 		Commands: cli.Commands{
@@ -42,7 +51,7 @@ func main() {
 				Action: func(c *cli.Context) error {
 					if err := app.Authorize(
 						c.Context,
-						app.TokenFilePath(),
+						c.String(paramTokenPath),
 						browser.New(os.Stdout, os.Stderr),
 						app.LogTransport(c.String(paramLogDir), http.DefaultTransport),
 					); err != nil {
@@ -67,7 +76,7 @@ func main() {
 
 					if err := app.Run(
 						c.Context,
-						app.TokenFilePath(),
+						c.String(paramTokenPath),
 						config.Measurements,
 						config.Influxdb.ServerURL,
 						os.Getenv("INFLUXDB_TOKEN"),
