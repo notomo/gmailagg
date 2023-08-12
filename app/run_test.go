@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/jarcoal/httpmock"
+	"github.com/notomo/gmailagg/pkg/gcsext/gcstest"
 	"github.com/notomo/gmailagg/pkg/gmailext/gmailtest"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -48,7 +49,7 @@ influxdb:
 `
 	require.NoError(t, os.WriteFile(configPath, []byte(configContent), 0700))
 
-	t.Run("dry run", func(t *testing.T) {
+	t.Run("can dry run", func(t *testing.T) {
 		transport := httpmock.NewMockTransport()
 		gmailtest.RegisterTokenResponse(transport)
 		gmailtest.RegisterMessageResponse(
@@ -104,7 +105,7 @@ influxdb:
 `, output.String())
 	})
 
-	t.Run("run", func(t *testing.T) {
+	t.Run("can run with local token file", func(t *testing.T) {
 		transport := httpmock.NewMockTransport()
 		gmailtest.RegisterTokenResponse(transport)
 		gmailtest.RegisterMessageResponse(
@@ -129,6 +130,52 @@ influxdb:
 			httpmock.BodyContainsString(`measurementName,tagKey1=tagValue amount=100i `+gmailtest.ToUnixMilli(t, "2020-01-02T00:00:00Z")),
 			httpmock.NewStringResponder(http.StatusOK, `{}`),
 		)
+
+		config, err := ReadConfig(configPath)
+		require.NoError(t, err)
+
+		require.NoError(t, Run(
+			ctx,
+			string(gmailtest.CredentialsJSON()),
+			tokenFilePath,
+			config.Measurements,
+			config.Influxdb.ServerURL,
+			"auth-token",
+			config.Influxdb.Org,
+			config.Influxdb.Bucket,
+			LogTransport("/tmp/gmailaggtest", transport),
+			nil,
+		))
+	})
+
+	t.Run("can run with gcs token object", func(t *testing.T) {
+		transport := httpmock.NewMockTransport()
+		gmailtest.RegisterTokenResponse(transport)
+		gmailtest.RegisterMessageResponse(
+			t,
+			transport,
+			gmailtest.Message{
+				ID:        "1111111111111111",
+				ThreadID:  "ttttttttttttttt1",
+				Body:      `合計 ￥ 100`,
+				Timestamp: "2020-01-02T00:00:00Z",
+			},
+			gmailtest.Message{
+				ID:        "2222222222222222",
+				ThreadID:  "ttttttttttttttt2",
+				Body:      `others`,
+				Timestamp: "2020-01-03T00:00:00Z",
+			},
+		)
+		transport.RegisterMatcherResponder(
+			http.MethodPost,
+			"http://gmailagg-test-influxdb/api/v2/write?bucket=test-bucket&org=test-org&precision=ns",
+			httpmock.BodyContainsString(`measurementName,tagKey1=tagValue amount=100i `+gmailtest.ToUnixMilli(t, "2020-01-02T00:00:00Z")),
+			httpmock.NewStringResponder(http.StatusOK, `{}`),
+		)
+		gcstest.RegisterGetResponse(transport, "test-bucket", "test.json", string(gmailtest.TokenJSON()))
+
+		tokenFilePath := "gs://test-bucket/test.json"
 
 		config, err := ReadConfig(configPath)
 		require.NoError(t, err)
