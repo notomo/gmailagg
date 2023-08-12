@@ -32,3 +32,11 @@ influxdb_token_list:
 	docker compose exec influxdb influx auth list --org="${INFLUXDB_ORG}"
 influxdb_clear_bucket:
 	docker compose exec influxdb influx delete --org="${INFLUXDB_ORG}" --bucket="${INFLUXDB_BUCKET}" --start=2009-01-02T23:00:00Z --stop=2099-01-02T23:00:00Z
+
+setup_terraform_backend:
+	gsutil mb -b on -c standard -p gmailagg -l us-west1 gs://gmailagg-tfstate
+
+build:
+	mkdir -p .local/build
+	CGO_ENABLED=0 go build -o .local/build/gmailagg main.go
+	docker build -f Dockerfile -t gmailagg-app .local/build
