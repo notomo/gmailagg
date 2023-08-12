@@ -3,6 +3,18 @@ resource "google_service_account" "default" {
   display_name = "gmailagg compute engine instance service account"
 }
 
+resource "google_compute_network" "default" {
+  name                    = var.project_id
+  auto_create_subnetworks = false
+}
+
+resource "google_compute_subnetwork" "default" {
+  name          = "${var.project_id}-subnet"
+  network       = google_compute_network.default.id
+  region        = var.region
+  ip_cidr_range = "192.168.0.0/20"
+}
+
 resource "google_project_iam_member" "instance-log-writer" {
   role    = "roles/logging.logWriter"
   member  = "serviceAccount:${google_service_account.default.email}"
@@ -95,7 +107,7 @@ resource "google_compute_instance" "default" {
   }
 
   network_interface {
-    network = "default"
+    subnetwork = google_compute_subnetwork.default.id
     access_config {}
   }
 
