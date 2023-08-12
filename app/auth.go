@@ -8,6 +8,7 @@ import (
 	"net/http"
 
 	"github.com/notomo/gmailagg/pkg/browser"
+	"github.com/notomo/gmailagg/pkg/gcsext"
 	"github.com/notomo/gmailagg/pkg/gmailext"
 )
 
@@ -18,7 +19,7 @@ func Authorize(
 	opener browser.Opener,
 	baseTransport http.RoundTripper,
 ) (retErr error) {
-	tokenWriter, err := NewTokenWriter(ctx, tokenFilePath, baseTransport)
+	tokenWriter, err := gcsext.NewWriterByPath(ctx, tokenFilePath, baseTransport)
 	if err != nil {
 		return fmt.Errorf("new token writer: %w", err)
 	}

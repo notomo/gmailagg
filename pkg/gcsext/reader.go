@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"os"
 
 	"cloud.google.com/go/storage"
 )
@@ -53,4 +54,24 @@ func (r *Reader) Close() error {
 		return fmt.Errorf("close reader: %w", err)
 	}
 	return nil
+}
+
+func NewReaderByPath(
+	ctx context.Context,
+	path string,
+	baseTransport http.RoundTripper,
+) (io.ReadCloser, error) {
+	if !isGsutilPath(path) {
+		tokenFile, err := os.Open(path)
+		if err != nil {
+			return nil, fmt.Errorf("open file path: %w", err)
+		}
+		return tokenFile, nil
+	}
+
+	reader, err := NewReader(ctx, path, baseTransport)
+	if err != nil {
+		return nil, fmt.Errorf("new gcs reader: %w", err)
+	}
+	return reader, nil
 }

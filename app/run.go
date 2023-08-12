@@ -8,6 +8,7 @@ import (
 	"net/http"
 
 	"github.com/notomo/gmailagg/app/extractor"
+	"github.com/notomo/gmailagg/pkg/gcsext"
 	"github.com/notomo/gmailagg/pkg/gmailext"
 	"github.com/notomo/gmailagg/pkg/influxdb"
 	"google.golang.org/api/gmail/v1"
@@ -39,7 +40,7 @@ func Run(
 		}
 	}()
 
-	tokenReader, err := NewTokenReader(ctx, tokenFilePath, baseTransport)
+	tokenReader, err := gcsext.NewReaderByPath(ctx, tokenFilePath, baseTransport)
 	if err != nil {
 		return fmt.Errorf("new token writer: %w", err)
 	}
