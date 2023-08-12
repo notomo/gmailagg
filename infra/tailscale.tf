@@ -9,6 +9,6 @@ data "template_file" "cloud-init" {
   template = file("cloud-init.yaml")
 
   vars = {
-    tailscale_auth_key = "${tailscale_tailnet_key.default.key}"
+    tailscale_auth_key = tailscale_tailnet_key.default.key
   }
 }
