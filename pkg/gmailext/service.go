@@ -4,8 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
-	"os"
 	"time"
 
 	"golang.org/x/oauth2"
@@ -18,7 +18,7 @@ import (
 func NewService(
 	ctx context.Context,
 	gmailCredentials string,
-	tokenFilePath string,
+	tokenReader io.Reader,
 	baseTransport http.RoundTripper,
 ) (*gmail.Service, error) {
 	config, err := getOauth2Config(ctx, gmailCredentials)
@@ -27,16 +27,8 @@ func NewService(
 	}
 
 	var token oauth2.Token
-	{
-		f, err := os.Open(tokenFilePath)
-		if err != nil {
-			return nil, fmt.Errorf("open token file path: %w", err)
-		}
-		defer f.Close()
-
-		if err := json.NewDecoder(f).Decode(&token); err != nil {
-			return nil, fmt.Errorf("json decode token: %w", err)
-		}
+	if err := json.NewDecoder(tokenReader).Decode(&token); err != nil {
+		return nil, fmt.Errorf("json decode token: %w", err)
 	}
 
 	ctx = context.WithValue(ctx, oauth2.HTTPClient, &http.Client{

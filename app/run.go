@@ -39,7 +39,17 @@ func Run(
 		}
 	}()
 
-	service, err := gmailext.NewService(ctx, gmailCredentials, tokenFilePath, baseTransport)
+	tokenReader, err := NewTokenReader(ctx, tokenFilePath, baseTransport)
+	if err != nil {
+		return fmt.Errorf("new token writer: %w", err)
+	}
+	defer func() {
+		if err := tokenReader.Close(); err != nil {
+			retErr = errors.Join(retErr, fmt.Errorf("close token reader: %w", err))
+		}
+	}()
+
+	service, err := gmailext.NewService(ctx, gmailCredentials, tokenReader, baseTransport)
 	if err != nil {
 		return fmt.Errorf("new gmail service: %w", err)
 	}
