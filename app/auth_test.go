@@ -21,10 +21,6 @@ func TestAuthorize(t *testing.T) {
 
 	tmpDir := t.TempDir()
 
-	credentialsJsonPath := filepath.Join(tmpDir, "credentials.json")
-	require.NoError(t, os.WriteFile(credentialsJsonPath, gmailtest.CredentialsJSON(), 0700))
-	t.Setenv("GOOGLE_APPLICATION_CREDENTIALS", credentialsJsonPath)
-
 	tokenFileName := "gmailagg/token.json"
 	tokenFilePath := filepath.Join(tmpDir, tokenFileName)
 
@@ -33,6 +29,7 @@ func TestAuthorize(t *testing.T) {
 
 	require.NoError(t, Authorize(
 		ctx,
+		string(gmailtest.CredentialsJSON()),
 		tokenFilePath,
 		&gmailtest.Opener{AuthCode: "test"},
 		LogTransport("/tmp/gmailaggtest", transport),

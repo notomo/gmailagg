@@ -21,10 +21,6 @@ func TestRun(t *testing.T) {
 
 	path := t.TempDir()
 
-	credentialsJsonPath := filepath.Join(path, "credentials.json")
-	require.NoError(t, os.WriteFile(credentialsJsonPath, gmailtest.CredentialsJSON(), 0700))
-	t.Setenv("GOOGLE_APPLICATION_CREDENTIALS", credentialsJsonPath)
-
 	tokenFilePath := filepath.Join(path, "token.json")
 	require.NoError(t, os.WriteFile(tokenFilePath, gmailtest.TokenJSON(), 0700))
 
@@ -78,6 +74,7 @@ influxdb:
 		var output bytes.Buffer
 		require.NoError(t, Run(
 			ctx,
+			string(gmailtest.CredentialsJSON()),
 			tokenFilePath,
 			config.Measurements,
 			config.Influxdb.ServerURL,
@@ -138,6 +135,7 @@ influxdb:
 
 		require.NoError(t, Run(
 			ctx,
+			string(gmailtest.CredentialsJSON()),
 			tokenFilePath,
 			config.Measurements,
 			config.Influxdb.ServerURL,

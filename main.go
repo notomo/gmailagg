@@ -51,6 +51,7 @@ func main() {
 				Action: func(c *cli.Context) error {
 					if err := app.Authorize(
 						c.Context,
+						os.Getenv("GMAILAGG_GMAIL_CREDENTIALS"),
 						c.String(paramTokenPath),
 						browser.New(os.Stdout, os.Stderr),
 						app.LogTransport(c.String(paramLogDir), http.DefaultTransport),
@@ -76,6 +77,7 @@ func main() {
 
 					if err := app.Run(
 						c.Context,
+						os.Getenv("GMAILAGG_GMAIL_CREDENTIALS"),
 						c.String(paramTokenPath),
 						config.Measurements,
 						config.Influxdb.ServerURL,

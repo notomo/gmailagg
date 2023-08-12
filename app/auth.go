@@ -13,6 +13,7 @@ import (
 
 func Authorize(
 	ctx context.Context,
+	gmailCredentials string,
 	tokenFilePath string,
 	opener browser.Opener,
 	baseTransport http.RoundTripper,
@@ -29,6 +30,7 @@ func Authorize(
 
 	token, err := gmailext.Authorize(
 		ctx,
+		gmailCredentials,
 		opener,
 		baseTransport,
 	)

@@ -17,10 +17,11 @@ import (
 
 func NewService(
 	ctx context.Context,
+	gmailCredentials string,
 	tokenFilePath string,
 	baseTransport http.RoundTripper,
 ) (*gmail.Service, error) {
-	config, err := getOauth2Config(ctx)
+	config, err := getOauth2Config(ctx, gmailCredentials)
 	if err != nil {
 		return nil, fmt.Errorf("get oauth2 config: %w", err)
 	}
@@ -62,8 +63,14 @@ func NewService(
 
 const gmailScope = gmail.GmailReadonlyScope
 
-func getOauth2Config(ctx context.Context) (*oauth2.Config, error) {
-	credentials, err := google.FindDefaultCredentials(ctx, gmailScope)
+func getOauth2Config(
+	ctx context.Context,
+	gmailCredentials string,
+) (*oauth2.Config, error) {
+	params := google.CredentialsParams{}
+	params.Scopes = []string{gmailScope}
+
+	credentials, err := google.CredentialsFromJSONWithParams(ctx, []byte(gmailCredentials), params)
 	if err != nil {
 		return nil, err
 	}
