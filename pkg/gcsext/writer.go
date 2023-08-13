@@ -25,7 +25,7 @@ func NewWriter(
 	path string,
 	baseTransport http.RoundTripper,
 ) (*Writer, error) {
-	client, err := NewClient(ctx, baseTransport)
+	client, err := NewClient(ctx, baseTransport, storage.ScopeReadWrite)
 	if err != nil {
 		return nil, fmt.Errorf("new gcs client: %w", err)
 	}

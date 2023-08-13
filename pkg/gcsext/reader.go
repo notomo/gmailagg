@@ -20,7 +20,7 @@ func NewReader(
 	path string,
 	baseTransport http.RoundTripper,
 ) (*Reader, error) {
-	client, err := NewClient(ctx, baseTransport)
+	client, err := NewClient(ctx, baseTransport, storage.ScopeReadOnly)
 	if err != nil {
 		return nil, fmt.Errorf("new gcs client: %w", err)
 	}

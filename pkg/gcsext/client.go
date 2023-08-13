@@ -16,12 +16,13 @@ import (
 func NewClient(
 	ctx context.Context,
 	baseTransport http.RoundTripper,
+	scopes ...string,
 ) (*storage.Client, error) {
 	ctx = context.WithValue(ctx, oauth2.HTTPClient, &http.Client{
 		Timeout:   20 * time.Second,
 		Transport: baseTransport,
 	})
-	credentials, err := google.FindDefaultCredentials(ctx, storage.ScopeReadWrite)
+	credentials, err := google.FindDefaultCredentials(ctx, scopes...)
 	if err != nil {
 		return nil, fmt.Errorf("find default google credentials: %w", err)
 	}
