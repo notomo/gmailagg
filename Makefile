@@ -35,8 +35,13 @@ influxdb_clear_bucket:
 
 setup_terraform_backend:
 	gsutil mb -b on -c standard -p gmailagg -l us-west1 gs://gmailagg-tfstate
+setup_docker_auth:
+	gcloud auth configure-docker us-west1-docker.pkg.dev
 
 build:
 	mkdir -p .local/build
 	CGO_ENABLED=0 go build -o .local/build/gmailagg main.go
-	docker build -f Dockerfile -t gmailagg-app .local/build
+	docker build -f Dockerfile -t us-west1-docker.pkg.dev/gmailagg/gmailagg-app/app .local/build
+
+push:
+	docker push us-west1-docker.pkg.dev/gmailagg/gmailagg-app/app
