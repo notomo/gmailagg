@@ -14,7 +14,7 @@ import (
 )
 
 type Writer struct {
-	writer io.WriteCloser
+	writer *storage.Writer
 	client *storage.Client
 }
 

@@ -11,7 +11,7 @@ import (
 )
 
 type Reader struct {
-	reader io.ReadCloser
+	reader *storage.Reader
 	client *storage.Client
 }
 

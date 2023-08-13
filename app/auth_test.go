@@ -51,6 +51,12 @@ func TestAuthorize(t *testing.T) {
 	})
 
 	t.Run("can save as gcs object", func(t *testing.T) {
+		tmpDir := t.TempDir()
+
+		credentialsFilePath := filepath.Join(tmpDir, "application_default_credentials.json")
+		require.NoError(t, os.WriteFile(credentialsFilePath, gcstest.CredentialsJSON(), 0700))
+		t.Setenv("GOOGLE_APPLICATION_CREDENTIALS", credentialsFilePath)
+
 		ctx := context.Background()
 
 		tokenFilePath := "gs://test-bucket/test.json"

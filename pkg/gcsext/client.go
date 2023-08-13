@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"cloud.google.com/go/storage"
+	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/option"
 	ghttp "google.golang.org/api/transport/http"
@@ -16,6 +17,10 @@ func NewClient(
 	ctx context.Context,
 	baseTransport http.RoundTripper,
 ) (*storage.Client, error) {
+	ctx = context.WithValue(ctx, oauth2.HTTPClient, &http.Client{
+		Timeout:   20 * time.Second,
+		Transport: baseTransport,
+	})
 	credentials, err := google.FindDefaultCredentials(ctx, storage.ScopeReadWrite)
 	if err != nil {
 		return nil, fmt.Errorf("find default google credentials: %w", err)
