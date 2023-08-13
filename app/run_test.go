@@ -149,6 +149,12 @@ influxdb:
 	})
 
 	t.Run("can run with gcs token object", func(t *testing.T) {
+		tmpDir := t.TempDir()
+
+		credentialsFilePath := filepath.Join(tmpDir, "application_default_credentials.json")
+		require.NoError(t, os.WriteFile(credentialsFilePath, gcstest.CredentialsJSON(), 0700))
+		t.Setenv("GOOGLE_APPLICATION_CREDENTIALS", credentialsFilePath)
+
 		transport := httpmock.NewMockTransport()
 		gmailtest.RegisterTokenResponse(transport)
 		gmailtest.RegisterMessageResponse(
