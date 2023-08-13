@@ -27,7 +27,7 @@ func NewClient(
 		return nil, fmt.Errorf("find default google credentials: %w", err)
 	}
 
-	transport, err := ghttp.NewTransport(ctx, baseTransport, option.WithCredentialsJSON(credentials.JSON))
+	transport, err := ghttp.NewTransport(ctx, baseTransport, option.WithTokenSource(credentials.TokenSource))
 	if err != nil {
 		return nil, fmt.Errorf("new transport: %w", err)
 	}
