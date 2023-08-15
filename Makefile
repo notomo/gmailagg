@@ -40,8 +40,9 @@ setup_docker_auth:
 
 build:
 	mkdir -p .local/build
+	cp -f ./infra/start.sh .local/build/start.sh
 	CGO_ENABLED=0 go build -o .local/build/gmailagg main.go
-	docker build -f Dockerfile -t us-west1-docker.pkg.dev/gmailagg/gmailagg-app/app .local/build
+	docker build -f Dockerfile -t us-west1-docker.pkg.dev/gmailagg/gmailagg-app/app:latest .local/build
 
 push:
-	docker push us-west1-docker.pkg.dev/gmailagg/gmailagg-app/app
+	docker push us-west1-docker.pkg.dev/gmailagg/gmailagg-app/app:latest

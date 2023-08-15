@@ -1,9 +1,10 @@
-FROM gcr.io/distroless/base-debian11
+FROM alpine:3.18
 
-USER nonroot:nonroot
+COPY --from=docker.io/tailscale/tailscale:stable /usr/local/bin/tailscaled /tailscaled
+COPY --from=docker.io/tailscale/tailscale:stable /usr/local/bin/tailscale /tailscale
+RUN mkdir -p /var/run/tailscale /var/cache/tailscale /var/lib/tailscale
 
 WORKDIR /
-COPY ./gmailagg /gmailagg
-COPY ./config.yaml /config.yaml
+COPY . /
 
-ENTRYPOINT ["/gmailagg", "--token=gs://gmailagg-token/token.json", "--config=/config.yaml", "run"]
+ENTRYPOINT ["/start.sh"]
