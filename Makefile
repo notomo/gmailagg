@@ -46,3 +46,11 @@ build:
 
 push:
 	docker push us-west1-docker.pkg.dev/gmailagg/gmailagg-app/app:latest
+
+setup_cleanup_policy:
+	gcloud artifacts repositories set-cleanup-policies gmailagg-app \
+	  --project=gmailagg \
+	  --location=us-west1 \
+	  --policy=./infra/repository_cleanup_policy.json \
+	  --no-dry-run \
+	  --overwrite
