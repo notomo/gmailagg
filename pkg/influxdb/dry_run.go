@@ -34,6 +34,7 @@ func (w *DryRunWriter) Flush() {
 			w.errCh <- err
 		}
 	}
+	close(w.errCh)
 }
 
 type dryRunTag struct {
