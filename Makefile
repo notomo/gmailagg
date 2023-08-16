@@ -10,7 +10,7 @@ CONFIG:=gmailagg.yaml
 LOG_DIR:=/tmp/gmailagg
 _execute:
 	rm -rf ${LOG_DIR}
-	go run main.go --config=${CONFIG} --log-dir=${LOG_DIR} --token=gs://gmailagg-token/token.json ${GMAILAGG_ARGS}
+	go run main.go --config=${CONFIG} --log-dir=${LOG_DIR} --token=gs://gmailagg-oauth/token.json ${GMAILAGG_ARGS}
 auth:
 	$(MAKE) _execute GMAILAGG_ARGS="auth"
 run:
@@ -42,15 +42,15 @@ build:
 	mkdir -p .local/build
 	cp -f ./infra/start.sh .local/build/start.sh
 	CGO_ENABLED=0 go build -o .local/build/gmailagg main.go
-	docker build -f Dockerfile -t us-west1-docker.pkg.dev/gmailagg/gmailagg-app/app:latest .local/build
+	docker build -f Dockerfile -t us-west1-docker.pkg.dev/gmailagg/gmailagg-app/job:latest .local/build
 
 push:
-	docker push us-west1-docker.pkg.dev/gmailagg/gmailagg-app/app:latest
+	docker push us-west1-docker.pkg.dev/gmailagg/gmailagg-app/job:latest
 
 setup_cleanup_policy:
 	gcloud artifacts repositories set-cleanup-policies gmailagg-app \
-	  --project=gmailagg \
-	  --location=us-west1 \
-	  --policy=./infra/repository_cleanup_policy.json \
+	  --project gmailagg \
+	  --location us-west1 \
+	  --policy ./infra/repository_cleanup_policy.json \
 	  --no-dry-run \
 	  --overwrite

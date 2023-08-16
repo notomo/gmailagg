@@ -13,7 +13,7 @@ variable "zone" {
   default = "us-west1-b"
 }
 
-variable "machine_type" {
+variable "influxdb_machine_type" {
   type    = string
   default = "e2-micro"
 }
@@ -37,4 +37,15 @@ variable "influxdb_org" {
 variable "influxdb_bucket" {
   type    = string
   default = "gmailagg"
+}
+
+variable "influxdb_retention" {
+  type    = string
+  default = ""
+}
+
+variable "influxdb_admin_token" {
+  type      = string
+  default   = "example-token"
+  sensitive = true
 }

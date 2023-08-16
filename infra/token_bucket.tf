@@ -1,8 +1,10 @@
 
-resource "google_storage_bucket" "token" {
-  name                     = "gmailagg-token"
-  storage_class            = "STANDARD"
-  public_access_prevention = "enforced"
-  location                 = var.region
-  project                  = var.project_id
+resource "google_storage_bucket" "gmailagg_oauth" {
+  name                        = "gmailagg-oauth"
+  storage_class               = "STANDARD"
+  public_access_prevention    = "enforced"
+  location                    = var.region
+  project                     = var.project_id
+  force_destroy               = true
+  uniform_bucket_level_access = true
 }
