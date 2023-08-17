@@ -22,6 +22,8 @@ const (
 )
 
 func main() {
+	app.SetupLogger()
+
 	app := &cli.App{
 		Name: "gmailagg",
 

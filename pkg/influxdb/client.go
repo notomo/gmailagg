@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"io"
-	"log"
 	"net/http"
 	"time"
 
@@ -58,10 +57,6 @@ type Point struct {
 }
 
 func (w *Writer) Write(ctx context.Context, points ...Point) {
-	count := len(points)
-	if count > 0 {
-		log.Printf("writing points: count=%d", count)
-	}
 	for _, p := range points {
 		w.api.WritePoint(influxdb2.NewPoint(
 			p.Measurement,

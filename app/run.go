@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log/slog"
 	"net/http"
 
 	"github.com/notomo/gmailagg/app/extractor"
@@ -60,6 +61,7 @@ func Run(
 		return fmt.Errorf("extractor list: %w", err)
 	}
 
+	logger := slog.Default()
 	for _, e := range extractors {
 		if err := gmailext.Iter(
 			ctx,
@@ -71,6 +73,12 @@ func Run(
 				if err != nil {
 					return false, err
 				}
+
+				count := len(points)
+				if count > 0 {
+					logger.Info("writing points", "count", count)
+				}
+
 				influxdbWriter.Write(ctx, points...)
 				return true, nil
 			},
