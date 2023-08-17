@@ -3,6 +3,11 @@ variable "project_id" {
   default = "gmailagg"
 }
 
+variable "project_number" {
+  type    = string
+  default = "647706074962"
+}
+
 variable "region" {
   type    = string
   default = "us-west1"

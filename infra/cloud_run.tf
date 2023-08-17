@@ -138,3 +138,46 @@ resource "google_secret_manager_secret_iam_member" "tailscale_reusable_auth_key_
   member    = "serviceAccount:${google_service_account.job.email}"
   project   = var.project_id
 }
+
+resource "google_project_service" "cloudscheduler_api" {
+  service            = "cloudscheduler.googleapis.com"
+  disable_on_destroy = false
+  project            = var.project_id
+}
+
+resource "google_service_account" "cloud_run_invoker" {
+  account_id   = "cloud-run-invoker"
+  display_name = "cloud run invoker"
+  project      = var.project_id
+}
+
+resource "google_project_iam_member" "cloud_run_invoker" {
+  role    = "roles/run.invoker"
+  member  = "serviceAccount:${google_service_account.cloud_run_invoker.email}"
+  project = var.project_id
+}
+
+resource "google_cloud_scheduler_job" "job" {
+  name             = "gmailagg-job"
+  description      = "gmailagg job scheduler"
+  schedule         = "0 0 */3 * *"
+  time_zone        = "Asia/Tokyo"
+  attempt_deadline = "330s"
+  region           = var.region
+  project          = var.project_id
+
+  retry_config {
+    retry_count = 0
+  }
+
+  http_target {
+    http_method = "POST"
+    uri         = "https://${google_cloud_run_v2_job.job.location}-run.googleapis.com/apis/run.googleapis.com/v1/namespaces/${var.project_number}/jobs/${google_cloud_run_v2_job.job.name}:run"
+
+    oauth_token {
+      service_account_email = google_service_account.cloud_run_invoker.email
+    }
+  }
+
+  depends_on = [resource.google_project_service.cloudscheduler_api]
+}
