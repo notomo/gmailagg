@@ -7,7 +7,7 @@ require (
 	github.com/adrg/xdg v0.4.0
 	github.com/henvic/httpretty v0.1.2
 	github.com/influxdata/influxdb-client-go/v2 v2.12.3
-	github.com/jarcoal/httpmock v1.3.0
+	github.com/jarcoal/httpmock v1.3.1
 	github.com/notomo/httpwriter v0.0.0-20230801001457-d247ac2be072
 	github.com/stretchr/testify v1.8.4
 	github.com/urfave/cli/v2 v2.25.7
