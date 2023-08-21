@@ -60,11 +60,27 @@ func isGsutilPath(path string) bool {
 	return strings.HasPrefix(path, "gs://")
 }
 
+type discard struct {
+}
+
+func (d *discard) Write(p []byte) (n int, err error) {
+	return io.Discard.Write(p)
+}
+
+func (d *discard) Close() error {
+	return nil
+}
+
 func NewWriterByPath(
 	ctx context.Context,
 	path string,
 	baseTransport http.RoundTripper,
+	dryRun bool,
 ) (io.WriteCloser, error) {
+	if dryRun {
+		return &discard{}, nil
+	}
+
 	if !isGsutilPath(path) {
 		if err := os.MkdirAll(filepath.Dir(path), 0700); err != nil {
 			return nil, fmt.Errorf("mkdir: %w", err)

@@ -13,6 +13,8 @@ _execute:
 	go run main.go --config=${CONFIG} --log-dir=${LOG_DIR} --token=gs://gmailagg-oauth/token.json ${GMAILAGG_ARGS}
 auth:
 	$(MAKE) _execute GMAILAGG_ARGS="auth"
+auth_dry_run:
+	$(MAKE) _execute GMAILAGG_ARGS="auth --dry-run"
 run:
 	$(MAKE) _execute GMAILAGG_ARGS="run"
 dry_run:

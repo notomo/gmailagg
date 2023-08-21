@@ -57,10 +57,19 @@ func main() {
 						c.String(paramTokenPath),
 						browser.New(os.Stdout, os.Stderr),
 						app.LogTransport(c.String(paramLogDir), http.DefaultTransport),
+						c.Bool(paramDryRun),
 					); err != nil {
 						return fmt.Errorf("authorize: %w", err)
 					}
 					return nil
+				},
+				Flags: []cli.Flag{
+					&cli.BoolFlag{
+						Name:     paramDryRun,
+						Required: false,
+						Value:    false,
+						Usage:    "dry run",
+					},
 				},
 			},
 

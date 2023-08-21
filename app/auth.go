@@ -18,8 +18,9 @@ func Authorize(
 	tokenFilePath string,
 	opener browser.Opener,
 	baseTransport http.RoundTripper,
+	dryRun bool,
 ) (retErr error) {
-	tokenWriter, err := gcsext.NewWriterByPath(ctx, tokenFilePath, baseTransport)
+	tokenWriter, err := gcsext.NewWriterByPath(ctx, tokenFilePath, baseTransport, dryRun)
 	if err != nil {
 		return fmt.Errorf("new token writer: %w", err)
 	}

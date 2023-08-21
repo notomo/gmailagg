@@ -36,6 +36,7 @@ func TestAuthorize(t *testing.T) {
 			tokenFilePath,
 			&gmailtest.Opener{AuthCode: "test"},
 			LogTransport("/tmp/gmailaggtest", transport),
+			false,
 		))
 
 		var got map[string]string
@@ -74,6 +75,7 @@ func TestAuthorize(t *testing.T) {
 			tokenFilePath,
 			&gmailtest.Opener{AuthCode: "test"},
 			LogTransport("/tmp/gmailaggtest", transport),
+			false,
 		))
 	})
 }
