@@ -18,7 +18,6 @@ resource "google_cloud_run_v2_job" "job" {
   template {
     template {
       containers {
-        # NOTE: fail in the first apply (not found image)
         image = "${var.region}-docker.pkg.dev/${var.project_id}/gmailagg-app/job"
 
         env {

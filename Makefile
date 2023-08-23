@@ -35,24 +35,35 @@ influxdb_token_list:
 influxdb_clear_bucket:
 	docker compose exec influxdb influx delete --org="${INFLUXDB_ORG}" --bucket="${INFLUXDB_BUCKET}" --start=2009-01-02T23:00:00Z --stop=2099-01-02T23:00:00Z
 
+PROJECT:=gmailagg
+REGION:=us-west1
+REPOSITORY_ID:=gmailagg-app
+REGISTRY:=${REGION}-docker.pkg.dev
+IMAGE_TAG:=latest
+IMAGE:=${REGISTRY}/${PROJECT}/${REPOSITORY_ID}/job:${IMAGE_TAG}
+
 setup_terraform_backend:
-	gsutil mb -b on -c standard -p gmailagg -l us-west1 gs://gmailagg-tfstate
+	gsutil mb -b on -c standard -p ${PROJECT} -l ${REGION} gs://gmailagg-tfstate
 setup_docker_auth:
-	gcloud auth configure-docker us-west1-docker.pkg.dev
-
-build:
-	mkdir -p .local/build
-	cp -f ./infra/start.sh .local/build/start.sh
-	CGO_ENABLED=0 go build -o .local/build/gmailagg main.go
-	docker build -f Dockerfile -t us-west1-docker.pkg.dev/gmailagg/gmailagg-app/job:latest .local/build
-
-push:
-	docker push us-west1-docker.pkg.dev/gmailagg/gmailagg-app/job:latest
-
+	gcloud auth configure-docker ${REGISTRY}
+setup_repository:
+	gcloud --project ${PROJECT} artifacts repositories create ${REPOSITORY_ID} \
+	  --repository-format=docker \
+	  --location=${REGION}
 setup_cleanup_policy:
-	gcloud artifacts repositories set-cleanup-policies gmailagg-app \
-	  --project gmailagg \
-	  --location us-west1 \
+	gcloud artifacts repositories set-cleanup-policies ${REPOSITORY_ID} \
+	  --project ${PROJECT} \
+	  --location ${REGION} \
 	  --policy ./infra/repository_cleanup_policy.json \
 	  --no-dry-run \
 	  --overwrite
+
+BUILD_DIR:= .local/build
+build:
+	mkdir -p ${BUILD_DIR}
+	cp -f ./infra/start.sh ${BUILD_DIR}/start.sh
+	CGO_ENABLED=0 go build -o ${BUILD_DIR}/gmailagg main.go
+	docker build -f Dockerfile -t ${IMAGE} ${BUILD_DIR}
+
+push:
+	docker push ${IMAGE}
