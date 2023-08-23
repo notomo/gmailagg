@@ -31,6 +31,8 @@ module "influxdb_container" {
   source  = "terraform-google-modules/container-vm/google"
   version = "~> 3.1"
 
+  cos_image_family = "beta"
+
   container = {
     image = "marketplace.gcr.io/google/influxdb2:2.7"
 
@@ -124,7 +126,7 @@ resource "google_compute_instance" "influxdb" {
     block-project-ssh-keys    = true
     google-logging-enabled    = true
     google-monitoring-enabled = true
-    user-data                 = data.template_file.cloud_init.rendered
+    user-data                 = sensitive(data.template_file.cloud_init.rendered)
   }
 
   shielded_instance_config {
