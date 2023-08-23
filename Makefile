@@ -58,6 +58,11 @@ setup_cleanup_policy:
 	  --no-dry-run \
 	  --overwrite
 
+refresh_tailscale_onetime_auth_key:
+	cd infra; terraform destroy -target=tailscale_tailnet_key.influxdb_instance_onetime_auth
+recreate_instance:
+	cd infra; terraform apply -replace=google_compute_instance.influxdb
+
 BUILD_DIR:= .local/build
 build:
 	mkdir -p ${BUILD_DIR}
