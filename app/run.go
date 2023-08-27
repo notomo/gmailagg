@@ -62,6 +62,7 @@ func Run(
 	}
 
 	logger := slog.Default()
+	allCount := 0
 	for _, e := range extractors {
 		if err := gmailext.Iter(
 			ctx,
@@ -78,6 +79,7 @@ func Run(
 				if count > 0 {
 					logger.Info("writing points", "count", count)
 				}
+				allCount += count
 
 				influxdbWriter.Write(ctx, points...)
 				return true, nil
@@ -86,6 +88,7 @@ func Run(
 			return fmt.Errorf("gmailext iter: %w", err)
 		}
 	}
+	logger.Info("writing points", "allCount", allCount)
 
 	return nil
 }
