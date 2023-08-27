@@ -37,8 +37,8 @@ var (
 )
 
 type RuleMapping struct {
-	Type     RuleMappingType          `yaml:"type"`
-	DataType RuleMappingFieldDataType `yaml:"data_type"`
+	Type     RuleMappingType          `json:"type"`
+	DataType RuleMappingFieldDataType `json:"dataType"`
 }
 
 func (m *RuleMapping) FieldValue(raw string) (any, error) {

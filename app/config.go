@@ -1,33 +1,39 @@
 package app
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 
 	"github.com/notomo/gmailagg/app/extractor"
-	"gopkg.in/yaml.v2"
 )
 
 type Influxdb struct {
-	ServerURL string `yaml:"serverUrl"`
-	Org       string `yaml:"org"`
-	Bucket    string `yaml:"bucket"`
+	ServerURL string `json:"serverUrl"`
+	Org       string `json:"org"`
+	Bucket    string `json:"bucket"`
 }
 
 type Config struct {
-	Measurements []extractor.Measurement `yaml:"measurements"`
-	Influxdb     Influxdb                `yaml:"influxdb"`
+	Measurements []extractor.Measurement `json:"measurements"`
+	Influxdb     Influxdb                `json:"influxdb"`
 }
 
-func ReadConfig(path string) (*Config, error) {
-	b, err := os.ReadFile(path)
-	if err != nil {
-		return nil, fmt.Errorf("read file: %w", err)
+func ReadConfig(path string, s string) (*Config, error) {
+	var content []byte
+	if path == "" {
+		content = []byte(s)
+	} else {
+		b, err := os.ReadFile(path)
+		if err != nil {
+			return nil, fmt.Errorf("read file: %w", err)
+		}
+		content = b
 	}
 
 	var config Config
-	if err := yaml.Unmarshal(b, &config); err != nil {
-		return nil, fmt.Errorf("yaml unmarshal: %w", err)
+	if err := json.Unmarshal(content, &config); err != nil {
+		return nil, fmt.Errorf("json unmarshal: %w", err)
 	}
 
 	return &config, nil

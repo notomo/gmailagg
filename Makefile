@@ -6,7 +6,7 @@ test:
 lint:
 	go vet ./...
 
-CONFIG:=gmailagg.yaml
+CONFIG:=example_config.json
 LOG_DIR:=/tmp/gmailagg
 _execute:
 	rm -rf ${LOG_DIR}
@@ -65,6 +65,7 @@ recreate_instance:
 
 BUILD_DIR:= .local/build
 build:
+	rm -rf ${BUILD_DIR}
 	mkdir -p ${BUILD_DIR}
 	cp -f ./infra/start.sh ${BUILD_DIR}/start.sh
 	CGO_ENABLED=0 go build -o ${BUILD_DIR}/gmailagg main.go

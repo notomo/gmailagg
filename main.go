@@ -30,7 +30,7 @@ func main() {
 		Flags: []cli.Flag{
 			&cli.StringFlag{
 				Name:     paramConfigFilePath,
-				Required: true,
+				Required: false,
 				Usage:    "config",
 			},
 			&cli.StringFlag{
@@ -76,7 +76,10 @@ func main() {
 			{
 				Name: "run",
 				Action: func(c *cli.Context) error {
-					config, err := app.ReadConfig(c.String(paramConfigFilePath))
+					config, err := app.ReadConfig(
+						c.String(paramConfigFilePath),
+						os.Getenv("GMAILAGG_CONFIG"),
+					)
 					if err != nil {
 						return fmt.Errorf("read config: %w", err)
 					}

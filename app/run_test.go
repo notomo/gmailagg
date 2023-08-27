@@ -3,6 +3,7 @@ package app
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -25,29 +26,44 @@ func TestRun(t *testing.T) {
 	tokenFilePath := filepath.Join(path, "token.json")
 	require.NoError(t, os.WriteFile(tokenFilePath, gmailtest.TokenJSON(), 0700))
 
-	configPath := filepath.Join(path, "config.yaml")
-	configContent := `
-measurements:
-  - name: measurementName
-    aggregations:
-      - query: query
-        rules:
-          - type: regexp
-            target: body
-            pattern: 合計.*￥ (?P<amount>\d+)
-            mappings:
-              amount:
-                type: field
-                data_type: integer
-        tags:
-          tagKey1: tagValue
-
-influxdb:
-  serverUrl: http://gmailagg-test-influxdb
-  org: test-org
-  bucket: test-bucket
-`
-	require.NoError(t, os.WriteFile(configPath, []byte(configContent), 0700))
+	configMap := map[string]any{
+		"measurements": []map[string]any{
+			{
+				"name": "measurementName",
+				"aggregations": []map[string]any{
+					{
+						"query": "query",
+						"rules": []map[string]any{
+							{
+								"type":    "regexp",
+								"target":  "body",
+								"pattern": `合計.*￥ (?P<amount>\d+)`,
+								"mappings": map[string]any{
+									"amount": map[string]any{
+										"type":     "field",
+										"dataType": "integer",
+									},
+								},
+							},
+						},
+						"tags": map[string]any{
+							"tagKey1": "tagValue",
+						},
+					},
+				},
+			},
+		},
+		"influxdb": map[string]any{
+			"serverUrl": "http://gmailagg-test-influxdb",
+			"org":       "test-org",
+			"bucket":    "test-bucket",
+		},
+	}
+	configBytes, err := json.Marshal(configMap)
+	if err != nil {
+		t.Fatal(err)
+	}
+	configStr := string(configBytes)
 
 	t.Run("can dry run", func(t *testing.T) {
 		transport := httpmock.NewMockTransport()
@@ -69,7 +85,7 @@ influxdb:
 			},
 		)
 
-		config, err := ReadConfig(configPath)
+		config, err := ReadConfig("", configStr)
 		require.NoError(t, err)
 
 		var output bytes.Buffer
@@ -131,7 +147,7 @@ influxdb:
 			httpmock.NewStringResponder(http.StatusOK, `{}`),
 		)
 
-		config, err := ReadConfig(configPath)
+		config, err := ReadConfig("", configStr)
 		require.NoError(t, err)
 
 		require.NoError(t, Run(
@@ -183,7 +199,7 @@ influxdb:
 
 		tokenFilePath := "gs://test-bucket/test.json"
 
-		config, err := ReadConfig(configPath)
+		config, err := ReadConfig("", configStr)
 		require.NoError(t, err)
 
 		require.NoError(t, Run(

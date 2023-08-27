@@ -21,6 +21,11 @@ resource "google_cloud_run_v2_job" "job" {
         image = "${var.region}-docker.pkg.dev/${var.project_id}/gmailagg-app/job"
 
         env {
+          name  = "GMAILAGG_CONFIG"
+          value = "dummy"
+        }
+
+        env {
           name = "GMAILAGG_GMAIL_CREDENTIALS"
           value_source {
             secret_key_ref {
@@ -56,6 +61,12 @@ resource "google_cloud_run_v2_job" "job" {
 
       service_account = google_service_account.job.email
     }
+  }
+
+  lifecycle {
+    ignore_changes = [
+      template.0.template.0.containers.0.env.0.value,
+    ]
   }
 
 }
