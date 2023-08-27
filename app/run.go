@@ -7,6 +7,7 @@ import (
 	"io"
 	"log/slog"
 	"net/http"
+	"sync/atomic"
 
 	"github.com/notomo/gmailagg/app/extractor"
 	"github.com/notomo/gmailagg/pkg/gcsext"
@@ -62,7 +63,7 @@ func Run(
 	}
 
 	logger := slog.Default()
-	allCount := 0
+	var allCount int64
 	for _, e := range extractors {
 		if err := gmailext.Iter(
 			ctx,
@@ -79,7 +80,7 @@ func Run(
 				if count > 0 {
 					logger.Info("writing points", "count", count)
 				}
-				allCount += count
+				atomic.AddInt64(&allCount, int64(count))
 
 				influxdbWriter.Write(ctx, points...)
 				return true, nil
