@@ -31,6 +31,66 @@ func List(
 	return extractors, nil
 }
 
+func makeMatchMap(
+	regex *regexp.Regexp,
+	body string,
+	maxMatchCount int,
+) map[string][]string {
+	matchMap := map[string][]string{}
+	captureNames := regex.SubexpNames()
+	allMatches := regex.FindAllStringSubmatch(body, maxMatchCount)
+	for _, matches := range allMatches {
+		matchesCount := len(matches)
+		for i, name := range captureNames {
+			if i == 0 || matchesCount <= i {
+				continue
+			}
+			if _, ok := matchMap[name]; !ok {
+				matchMap[name] = []string{}
+			}
+			matchMap[name] = append(matchMap[name], matches[i])
+		}
+	}
+	return matchMap
+}
+
+func resolve(
+	mappingName string,
+	mappings map[string]RuleMapping,
+	matchMap map[string][]string,
+	fields map[string]any,
+	hiddenFields map[string]any,
+	tags map[string]string,
+) error {
+	mapping, ok := mappings[mappingName]
+	if !ok {
+		return nil
+	}
+
+	matches := matchMap[mappingName]
+	for _, rawMatch := range matches {
+		match := mapping.Replace(rawMatch)
+		switch mapping.Type {
+		case RuleMappingTypeField:
+			v, err := mapping.FieldValue(match, fields[mappingName])
+			if err != nil {
+				return err
+			}
+			fields[mappingName] = v
+		case RuleMappingTypeHiddenField:
+			v, err := mapping.FieldValue(match, hiddenFields[mappingName])
+			if err != nil {
+				return err
+			}
+			hiddenFields[mappingName] = v
+		case RuleMappingTypeTag:
+			tags[mappingName] = match
+		}
+	}
+
+	return nil
+}
+
 func toExtractor(
 	measurementName string,
 	query string,
@@ -54,35 +114,23 @@ func toExtractor(
 			logger.Debug("message", "body", body)
 
 			fields := map[string]any{}
+			hiddenFields := map[string]any{}
 			tags := map[string]string{}
 			for k, v := range baseTags {
 				tags[k] = v
 			}
 
-			allMatches := regex.FindAllStringSubmatch(body, rule.MatchMaxCount)
-			for _, matches := range allMatches {
-				matchesCount := len(matches)
-				for i, name := range regex.SubexpNames() {
-					if i == 0 || name == "" || matchesCount <= i {
-						continue
-					}
-
-					mapping, ok := rule.Mappings[name]
-					if !ok {
-						continue
-					}
-
-					match := mapping.Replace(matches[i])
-					switch mapping.Type {
-					case RuleMappingTypeField:
-						v, err := mapping.FieldValue(match, fields[name])
-						if err != nil {
-							return nil, err
-						}
-						fields[name] = v
-					case RuleMappingTypeTag:
-						tags[name] = match
-					}
+			matchMap := makeMatchMap(regex, body, rule.MatchMaxCount)
+			for mappingName := range rule.Mappings {
+				if err := resolve(
+					mappingName,
+					rule.Mappings,
+					matchMap,
+					fields,
+					hiddenFields,
+					tags,
+				); err != nil {
+					return nil, err
 				}
 			}
 

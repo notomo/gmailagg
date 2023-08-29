@@ -95,8 +95,9 @@ func (m *RuleMapping) FieldValue(raw string, oldValue any) (any, error) {
 type RuleMappingType string
 
 var (
-	RuleMappingTypeField = RuleMappingType("field")
-	RuleMappingTypeTag   = RuleMappingType("tag")
+	RuleMappingTypeField       = RuleMappingType("field")
+	RuleMappingTypeTag         = RuleMappingType("tag")
+	RuleMappingTypeHiddenField = RuleMappingType("hidden")
 )
 
 type RuleMappingFieldDataType string
