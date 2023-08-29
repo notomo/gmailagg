@@ -71,5 +71,5 @@ build:
 	CGO_ENABLED=0 go build -o ${BUILD_DIR}/gmailagg main.go
 	docker build -f Dockerfile -t ${IMAGE} ${BUILD_DIR}
 
-push:
+push: build
 	docker push ${IMAGE}
