@@ -37,11 +37,17 @@ func TestRun(t *testing.T) {
 							{
 								"type":    "regexp",
 								"target":  "body",
-								"pattern": `合計.*￥ (?P<amount>\d+)`,
+								"pattern": `合計.*￥ (?P<amount>[\d,]+)`,
 								"mappings": map[string]any{
 									"amount": map[string]any{
 										"type":     "field",
 										"dataType": "integer",
+										"replacers": []map[string]any{
+											{
+												"old": ",",
+												"new": "",
+											},
+										},
 									},
 								},
 							},
@@ -74,7 +80,7 @@ func TestRun(t *testing.T) {
 			gmailtest.Message{
 				ID:        "1111111111111111",
 				ThreadID:  "ttttttttttttttt1",
-				Body:      `合計 ￥ 100`,
+				Body:      `合計 ￥ 1,000`,
 				Timestamp: "2020-01-02T00:00:00Z",
 			},
 			gmailtest.Message{
@@ -113,7 +119,7 @@ func TestRun(t *testing.T) {
   "fields": [
     {
       "key": "amount",
-      "value": 100
+      "value": 1000
     }
   ],
   "at": "2020-01-02T00:00:00Z"

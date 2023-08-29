@@ -3,6 +3,7 @@ package extractor
 import (
 	"fmt"
 	"strconv"
+	"strings"
 )
 
 type Measurement struct {
@@ -37,8 +38,25 @@ var (
 )
 
 type RuleMapping struct {
-	Type     RuleMappingType          `json:"type"`
-	DataType RuleMappingFieldDataType `json:"dataType"`
+	Type      RuleMappingType          `json:"type"`
+	DataType  RuleMappingFieldDataType `json:"dataType"`
+	Replacers []Replacer               `json:"replacers"`
+}
+
+type Replacer struct {
+	Old string `json:"old"`
+	New string `json:"new"`
+}
+
+func (r *Replacer) Apply(s string) string {
+	return strings.ReplaceAll(s, r.Old, r.New)
+}
+
+func (m *RuleMapping) Replace(s string) string {
+	for _, replacer := range m.Replacers {
+		s = replacer.Apply(s)
+	}
+	return s
 }
 
 func (m *RuleMapping) FieldValue(raw string) (any, error) {

@@ -62,12 +62,12 @@ func toExtractor(
 					continue
 				}
 
-				match := matches[i]
 				mapping, ok := rule.Mappings[name]
 				if !ok {
 					continue
 				}
 
+				match := mapping.Replace(matches[i])
 				switch mapping.Type {
 				case RuleMappingTypeField:
 					v, err := mapping.FieldValue(match)
