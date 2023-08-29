@@ -1,6 +1,7 @@
 package extractor
 
 import (
+	"fmt"
 	"log/slog"
 	"regexp"
 	"time"
@@ -34,9 +35,11 @@ func List(
 func makeMatchMap(
 	regex *regexp.Regexp,
 	body string,
+	mappings map[string]RuleMapping,
 	maxMatchCount int,
 ) map[string][]string {
 	matchMap := map[string][]string{}
+
 	captureNames := regex.SubexpNames()
 	allMatches := regex.FindAllStringSubmatch(body, maxMatchCount)
 	for _, matches := range allMatches {
@@ -48,9 +51,20 @@ func makeMatchMap(
 			if _, ok := matchMap[name]; !ok {
 				matchMap[name] = []string{}
 			}
-			matchMap[name] = append(matchMap[name], matches[i])
+			match := matches[i]
+			if mapping, ok := mappings[name]; ok {
+				match = mapping.Replace(match)
+			}
+			matchMap[name] = append(matchMap[name], match)
 		}
 	}
+
+	for name, mapping := range mappings {
+		if _, ok := matchMap[name]; !ok && mapping.Expression != "" {
+			matchMap[name] = []string{""}
+		}
+	}
+
 	return matchMap
 }
 
@@ -59,32 +73,70 @@ func resolve(
 	mappings map[string]RuleMapping,
 	matchMap map[string][]string,
 	fields map[string]any,
-	hiddenFields map[string]any,
+	hiddenValues map[string]any,
 	tags map[string]string,
 ) error {
+	if _, ok := fields[mappingName]; ok {
+		return nil
+	}
+	if _, ok := hiddenValues[mappingName]; ok {
+		return nil
+	}
+	if _, ok := tags[mappingName]; ok {
+		return nil
+	}
+
 	mapping, ok := mappings[mappingName]
 	if !ok {
 		return nil
 	}
 
+	for _, fieldName := range mapping.ExpressionFields() {
+		if err := resolve(
+			fieldName,
+			mappings,
+			matchMap,
+			fields,
+			hiddenValues,
+			tags,
+		); err != nil {
+			return err
+		}
+	}
+
 	matches := matchMap[mappingName]
-	for _, rawMatch := range matches {
-		match := mapping.Replace(rawMatch)
+	for _, match := range matches {
 		switch mapping.Type {
 		case RuleMappingTypeField:
-			v, err := mapping.FieldValue(match, fields[mappingName])
+			v, err := mapping.FieldValue(
+				match,
+				fields[mappingName],
+				fields,
+				hiddenValues,
+			)
 			if err != nil {
 				return err
 			}
-			fields[mappingName] = v
-		case RuleMappingTypeHiddenField:
-			v, err := mapping.FieldValue(match, hiddenFields[mappingName])
-			if err != nil {
-				return err
+			if v != nil {
+				fields[mappingName] = v
 			}
-			hiddenFields[mappingName] = v
 		case RuleMappingTypeTag:
 			tags[mappingName] = match
+		case RuleMappingTypeHiddenValue:
+			v, err := mapping.FieldValue(
+				match,
+				hiddenValues[mappingName],
+				fields,
+				hiddenValues,
+			)
+			if err != nil {
+				return err
+			}
+			if v != nil {
+				hiddenValues[mappingName] = v
+			}
+		default:
+			return fmt.Errorf("unexpected rule mapping type: %s", mapping.Type)
 		}
 	}
 
@@ -120,7 +172,7 @@ func toExtractor(
 				tags[k] = v
 			}
 
-			matchMap := makeMatchMap(regex, body, rule.MatchMaxCount)
+			matchMap := makeMatchMap(regex, body, rule.Mappings, rule.MatchMaxCount)
 			for mappingName := range rule.Mappings {
 				if err := resolve(
 					mappingName,

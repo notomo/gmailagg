@@ -2,6 +2,7 @@ package extractor
 
 import (
 	"fmt"
+	"regexp"
 	"strconv"
 	"strings"
 )
@@ -38,12 +39,6 @@ var (
 	RuleTypeRegexp = RuleType("regexp")
 )
 
-type RuleMapping struct {
-	Type      RuleMappingType          `json:"type"`
-	DataType  RuleMappingFieldDataType `json:"dataType"`
-	Replacers []Replacer               `json:"replacers"`
-}
-
 type Replacer struct {
 	Old string `json:"old"`
 	New string `json:"new"`
@@ -53,6 +48,17 @@ func (r *Replacer) Apply(s string) string {
 	return strings.ReplaceAll(s, r.Old, r.New)
 }
 
+type RuleMapping struct {
+	Type       RuleMappingType          `json:"type"`
+	DataType   RuleMappingFieldDataType `json:"dataType"`
+	Replacers  []Replacer               `json:"replacers"`
+	Expression string                   `json:"expression"`
+}
+
+func (m *RuleMapping) ExpressionFields() []string {
+	return expressionOperator.Split(m.Expression, -1)
+}
+
 func (m *RuleMapping) Replace(s string) string {
 	for _, replacer := range m.Replacers {
 		s = replacer.Apply(s)
@@ -60,7 +66,12 @@ func (m *RuleMapping) Replace(s string) string {
 	return s
 }
 
-func (m *RuleMapping) FieldValue(raw string, oldValue any) (any, error) {
+func (m *RuleMapping) FieldValue(
+	raw string,
+	oldValue any,
+	fields map[string]any,
+	hiddenValues map[string]any,
+) (any, error) {
 	switch m.DataType {
 	case RuleMappingFieldDataTypeFloat:
 		v, err := strconv.ParseFloat(raw, 64)
@@ -72,14 +83,17 @@ func (m *RuleMapping) FieldValue(raw string, oldValue any) (any, error) {
 		}
 		return v, nil
 	case RuleMappingFieldDataTypeInteger:
-		v, err := strconv.Atoi(raw)
+		v, resolved, err := resolveIntegerExpression(m.Expression, raw, fields, hiddenValues)
 		if err != nil {
 			return nil, err
 		}
 		if old, ok := oldValue.(int); ok {
 			v += old
 		}
-		return v, nil
+		if resolved {
+			return v, nil
+		}
+		return nil, nil
 	case RuleMappingFieldDataTypeString:
 		return raw, nil
 	case RuleMappingFieldDataTypeBoolean:
@@ -92,12 +106,55 @@ func (m *RuleMapping) FieldValue(raw string, oldValue any) (any, error) {
 	return nil, fmt.Errorf("unexpected data_type: %s", m.DataType)
 }
 
+var expressionOperator = regexp.MustCompile("[+-]")
+
+func resolveIntegerExpression(
+	expression string,
+	raw string,
+	fields map[string]any,
+	hiddenValues map[string]any,
+) (int, bool, error) {
+	if expression == "" {
+		v, err := strconv.Atoi(raw)
+		if err != nil {
+			return 0, false, err
+		}
+		return v, true, nil
+	}
+
+	expression = expressionOperator.ReplaceAllStringFunc(expression, func(s string) string {
+		return fmt.Sprintf(" %s ", s)
+	})
+	result := 0
+	factor := 1
+	for _, atom := range strings.Fields(expression) {
+		switch atom {
+		case "+":
+			factor = 1
+		case "-":
+			factor = -1
+		default:
+			var value int
+			if v, ok := fields[atom]; ok {
+				value = v.(int)
+			} else if v, ok := hiddenValues[atom]; ok {
+				value = v.(int)
+			} else {
+				return 0, false, nil
+			}
+			result += value * factor
+		}
+	}
+
+	return result, true, nil
+}
+
 type RuleMappingType string
 
 var (
 	RuleMappingTypeField       = RuleMappingType("field")
 	RuleMappingTypeTag         = RuleMappingType("tag")
-	RuleMappingTypeHiddenField = RuleMappingType("hidden")
+	RuleMappingTypeHiddenValue = RuleMappingType("hidden")
 )
 
 type RuleMappingFieldDataType string

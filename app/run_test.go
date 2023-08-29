@@ -37,11 +37,16 @@ func TestRun(t *testing.T) {
 							{
 								"type":          "regexp",
 								"target":        "body",
-								"pattern":       `合計.*￥ (?P<amount>[\d,]+)`,
+								"pattern":       `金額.*￥ (?P<price>[\d,]+) 割引.*￥ (?P<discount>[\d,]+)`,
 								"matchMaxCount": -1,
 								"mappings": map[string]any{
 									"amount": map[string]any{
-										"type":     "field",
+										"type":       "field",
+										"dataType":   "integer",
+										"expression": "price-discount",
+									},
+									"price": map[string]any{
+										"type":     "hidden",
 										"dataType": "integer",
 										"replacers": []map[string]any{
 											{
@@ -49,6 +54,10 @@ func TestRun(t *testing.T) {
 												"new": "",
 											},
 										},
+									},
+									"discount": map[string]any{
+										"type":     "hidden",
+										"dataType": "integer",
 									},
 								},
 							},
@@ -82,8 +91,8 @@ func TestRun(t *testing.T) {
 				ID:       "1111111111111111",
 				ThreadID: "ttttttttttttttt1",
 				Body: `
-合計 ￥ 1,000
-合計 ￥ 2,000
+金額 ￥ 1,000 割引 ￥ 100
+金額 ￥ 2,000 割引 ￥ 200
 `,
 				Timestamp: "2020-01-02T00:00:00Z",
 			},
@@ -123,7 +132,7 @@ func TestRun(t *testing.T) {
   "fields": [
     {
       "key": "amount",
-      "value": 3000
+      "value": 2700
     }
   ],
   "at": "2020-01-02T00:00:00Z"
