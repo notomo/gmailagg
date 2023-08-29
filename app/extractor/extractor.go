@@ -1,6 +1,7 @@
 package extractor
 
 import (
+	"log/slog"
 	"regexp"
 	"time"
 
@@ -36,6 +37,8 @@ func toExtractor(
 	rules []AggregationRule,
 	baseTags map[string]string,
 ) (*Extractor, error) {
+	logger := slog.Default()
+
 	funcs := []func(*gmail.Message) (*influxdb.Point, error){}
 	for _, rule := range rules {
 		regex, err := regexp.Compile(rule.Pattern)
@@ -48,6 +51,7 @@ func toExtractor(
 			if err != nil {
 				return nil, err
 			}
+			logger.Debug("message", "body", body)
 
 			fields := map[string]any{}
 			tags := map[string]string{}
