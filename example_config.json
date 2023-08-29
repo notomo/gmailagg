@@ -10,6 +10,7 @@
               "type": "regexp",
               "target": "body",
               "pattern": "合計.*\\ (?P<amount>\\d+)",
+              "matchMaxCount": 1,
               "mappings": {
                 "amount": {
                   "type": "field",

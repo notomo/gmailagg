@@ -20,9 +20,10 @@ type Aggregation struct {
 type AggregationRule struct {
 	Type RuleType
 
-	Target   TargetType
-	Pattern  string
-	Mappings map[string]RuleMapping
+	Target        TargetType
+	Pattern       string
+	MatchMaxCount int
+	Mappings      map[string]RuleMapping
 }
 
 type TargetType string
@@ -59,18 +60,24 @@ func (m *RuleMapping) Replace(s string) string {
 	return s
 }
 
-func (m *RuleMapping) FieldValue(raw string) (any, error) {
+func (m *RuleMapping) FieldValue(raw string, oldValue any) (any, error) {
 	switch m.DataType {
 	case RuleMappingFieldDataTypeFloat:
 		v, err := strconv.ParseFloat(raw, 64)
 		if err != nil {
 			return nil, err
 		}
+		if old, ok := oldValue.(float64); ok {
+			v += old
+		}
 		return v, nil
 	case RuleMappingFieldDataTypeInteger:
 		v, err := strconv.Atoi(raw)
 		if err != nil {
 			return nil, err
+		}
+		if old, ok := oldValue.(int); ok {
+			v += old
 		}
 		return v, nil
 	case RuleMappingFieldDataTypeString:

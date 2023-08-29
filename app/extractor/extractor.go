@@ -55,28 +55,30 @@ func toExtractor(
 				tags[k] = v
 			}
 
-			matches := regex.FindStringSubmatch(body)
-			matchesCount := len(matches)
-			for i, name := range regex.SubexpNames() {
-				if i == 0 || name == "" || matchesCount <= i {
-					continue
-				}
-
-				mapping, ok := rule.Mappings[name]
-				if !ok {
-					continue
-				}
-
-				match := mapping.Replace(matches[i])
-				switch mapping.Type {
-				case RuleMappingTypeField:
-					v, err := mapping.FieldValue(match)
-					if err != nil {
-						return nil, err
+			allMatches := regex.FindAllStringSubmatch(body, rule.MatchMaxCount)
+			for _, matches := range allMatches {
+				matchesCount := len(matches)
+				for i, name := range regex.SubexpNames() {
+					if i == 0 || name == "" || matchesCount <= i {
+						continue
 					}
-					fields[name] = v
-				case RuleMappingTypeTag:
-					tags[name] = match
+
+					mapping, ok := rule.Mappings[name]
+					if !ok {
+						continue
+					}
+
+					match := mapping.Replace(matches[i])
+					switch mapping.Type {
+					case RuleMappingTypeField:
+						v, err := mapping.FieldValue(match, fields[name])
+						if err != nil {
+							return nil, err
+						}
+						fields[name] = v
+					case RuleMappingTypeTag:
+						tags[name] = match
+					}
 				}
 			}
 
