@@ -34,3 +34,28 @@ resource "google_project_iam_member" "delivery_storage_object_user" {
     EOT
   }
 }
+
+resource "google_project_iam_custom_role" "terraform" {
+  role_id = "terraform"
+  title   = "terraform automation role"
+  permissions = [
+    "resourcemanager.projects.getIamPolicy",
+    "compute.networks.get",
+    "compute.subnetworks.get",
+    "compute.instances.get",
+    "compute.disks.get",
+    "storage.buckets.get",
+    "secretmanager.secrets.get",
+    "secretmanager.versions.get",
+    "secretmanager.secrets.getIamPolicy",
+    "iam.serviceAccounts.get",
+    "run.jobs.get",
+    "cloudscheduler.jobs.get",
+  ]
+}
+
+resource "google_project_iam_member" "terraform" {
+  role    = google_project_iam_custom_role.terraform.id
+  member  = "serviceAccount:${google_service_account.delivery.email}"
+  project = var.project_id
+}
