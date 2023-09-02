@@ -31,7 +31,7 @@ jobs:
 
       - uses: google-github-actions/auth@v1
         with:
-          workload_identity_provider: projects/647706074962/locations/global/workloadIdentityPools/gmailagg-pool/providers/gmailagg-gh-provider
+          workload_identity_provider: projects/647706074962/locations/global/workloadIdentityPools/gmailagg-pool/providers/github-actions
           service_account: gmailagg-delivery@gmailagg.iam.gserviceaccount.com
 
       - uses: google-github-actions/setup-gcloud@v1

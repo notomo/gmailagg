@@ -30,3 +30,13 @@ updates:
       timezone: "Asia/Tokyo"
     assignees:
       - "notomo"
+
+  - package-ecosystem: "terraform"
+    directory: "/infra/admin"
+    schedule:
+      interval: "weekly"
+      day: "saturday"
+      time: "12:00"
+      timezone: "Asia/Tokyo"
+    assignees:
+      - "notomo"

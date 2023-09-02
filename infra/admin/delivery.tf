@@ -2,7 +2,7 @@ module "gh_oidc" {
   source      = "terraform-google-modules/github-actions-runners/google//modules/gh-oidc"
   project_id  = var.project_id
   pool_id     = "gmailagg-pool"
-  provider_id = "gmailagg-gh-provider"
+  provider_id = "github-actions"
   sa_mapping = {
     "gmailagg-delivery" = {
       sa_name   = "projects/${var.project_id}/serviceAccounts/gmailagg-delivery@${var.project_id}.iam.gserviceaccount.com"
