@@ -22,7 +22,7 @@ updates:
       - "notomo"
 
   - package-ecosystem: "terraform"
-    directory: "/infra"
+    directory: "/infra/production"
     schedule:
       interval: "weekly"
       day: "saturday"
