@@ -3,6 +3,14 @@ on:
   push:
     branches:
       - 'main'
+    paths:
+      - '**.go'
+      - 'go.mod'
+      - 'go.sum'
+      - 'Makefile'
+      - '.github/workflows/docker-image-push.yml'
+      - 'infra/start.sh'
+      - 'Dockerfile'
 
 env:
   GO_VERSION: '1.21'
