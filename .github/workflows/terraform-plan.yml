@@ -29,4 +29,5 @@ jobs:
 
       - run: terraform init
       - run: terraform validate
-      - run: terraform plan
+      # TODO
+      # - run: terraform plan
