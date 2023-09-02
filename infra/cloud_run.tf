@@ -8,6 +8,13 @@ resource "google_project_iam_member" "job_storage_object_viewer" {
   role    = "roles/storage.objectViewer"
   member  = "serviceAccount:${google_service_account.job.email}"
   project = var.project_id
+  condition {
+    title      = "limit_to_token_bucket"
+    expression = <<-EOT
+      resource.name == "projects/_/buckets/${google_storage_bucket.gmailagg_oauth.name}" ||
+      resource.name.startsWith("projects/_/buckets/${google_storage_bucket.gmailagg_oauth.name}/objects/")
+    EOT
+  }
 }
 
 resource "google_cloud_run_v2_job" "job" {

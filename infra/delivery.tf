@@ -21,3 +21,16 @@ resource "google_project_iam_member" "delivery_artifactregistry_writer" {
   member  = "serviceAccount:${google_service_account.delivery.email}"
   project = var.project_id
 }
+
+resource "google_project_iam_member" "delivery_storage_object_viewer" {
+  role    = "roles/storage.objectViewer"
+  member  = "serviceAccount:${google_service_account.delivery.email}"
+  project = var.project_id
+  condition {
+    title      = "limit_to_tfstate_bucket"
+    expression = <<-EOT
+      resource.name == "projects/_/buckets/gmailagg-tfstate" ||
+      resource.name.startsWith("projects/_/buckets/gmailagg-tfstate/objects/")
+    EOT
+  }
+}
