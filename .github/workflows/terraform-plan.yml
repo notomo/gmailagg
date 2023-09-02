@@ -34,7 +34,7 @@ jobs:
       - run: terraform init
       - run: terraform validate
 
-      - run: terraform plan
+      - run: terraform plan -detailed-exitcode
         env:
           TAILSCALE_TAILNET: ${{ secrets.TAILSCALE_TAILNET }}
           TAILSCALE_API_KEY: ${{ secrets.TAILSCALE_API_KEY }}
