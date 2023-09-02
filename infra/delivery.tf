@@ -22,8 +22,8 @@ resource "google_project_iam_member" "delivery_artifactregistry_writer" {
   project = var.project_id
 }
 
-resource "google_project_iam_member" "delivery_storage_object_viewer" {
-  role    = "roles/storage.objectViewer"
+resource "google_project_iam_member" "delivery_storage_object_user" {
+  role    = "roles/storage.objectUser"
   member  = "serviceAccount:${google_service_account.delivery.email}"
   project = var.project_id
   condition {
