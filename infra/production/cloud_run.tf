@@ -156,12 +156,6 @@ resource "google_secret_manager_secret_iam_member" "tailscale_reusable_auth_key_
   project   = var.project_id
 }
 
-resource "google_project_service" "cloudscheduler_api" {
-  service            = "cloudscheduler.googleapis.com"
-  disable_on_destroy = false
-  project            = var.project_id
-}
-
 resource "google_service_account" "cloud_run_invoker" {
   account_id   = "cloud-run-invoker"
   display_name = "cloud run invoker"
@@ -195,6 +189,4 @@ resource "google_cloud_scheduler_job" "job" {
       service_account_email = google_service_account.cloud_run_invoker.email
     }
   }
-
-  depends_on = [resource.google_project_service.cloudscheduler_api]
 }
