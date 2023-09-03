@@ -13,5 +13,7 @@ services:
       DOCKER_INFLUXDB_INIT_PASSWORD: "example-password"
       DOCKER_INFLUXDB_INIT_ORG: "example-org"
       DOCKER_INFLUXDB_INIT_BUCKET: "gmailagg"
+      DOCKER_INFLUXDB_INIT_RETENTION: ""
+      DOCKER_INFLUXDB_INIT_ADMIN_TOKEN: "example-token"
     volumes:
       - .local/influxdb:/var/lib/influxdb2
