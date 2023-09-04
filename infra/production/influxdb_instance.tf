@@ -65,6 +65,14 @@ module "influxdb_container" {
         name  = "DOCKER_INFLUXDB_INIT_ADMIN_TOKEN"
         value = var.influxdb_admin_token
       },
+      {
+        name  = "INFLUXD_SESSION_RENEW_DISABLED"
+        value = "true"
+      },
+      {
+        name  = "INFLUXD_SESSION_LENGTH"
+        value = "1440"
+      },
     ]
 
     volumeMounts = [
