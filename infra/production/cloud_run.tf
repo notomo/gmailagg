@@ -73,6 +73,9 @@ resource "google_cloud_run_v2_job" "job" {
   lifecycle {
     ignore_changes = [
       template[0].template[0].containers[0].env[0].value,
+      annotations,
+      client,
+      template[0].annotations
     ]
   }
 
