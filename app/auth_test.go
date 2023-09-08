@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/jarcoal/httpmock"
 	"github.com/notomo/gmailagg/pkg/fstestext"
@@ -35,6 +36,7 @@ func TestAuthorize(t *testing.T) {
 			string(gmailtest.CredentialsJSON()),
 			tokenFilePath,
 			&gmailtest.Opener{AuthCode: "test"},
+			3*time.Minute,
 			LogTransport("/tmp/gmailaggtest", transport),
 			false,
 		))
@@ -74,6 +76,7 @@ func TestAuthorize(t *testing.T) {
 			string(gmailtest.CredentialsJSON()),
 			tokenFilePath,
 			&gmailtest.Opener{AuthCode: "test"},
+			3*time.Minute,
 			LogTransport("/tmp/gmailaggtest", transport),
 			false,
 		))

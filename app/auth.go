@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/notomo/gmailagg/pkg/browser"
 	"github.com/notomo/gmailagg/pkg/gcsext"
@@ -17,6 +18,7 @@ func Authorize(
 	gmailCredentials string,
 	tokenFilePath string,
 	opener browser.Opener,
+	timeout time.Duration,
 	baseTransport http.RoundTripper,
 	dryRun bool,
 ) (retErr error) {
@@ -29,6 +31,9 @@ func Authorize(
 			retErr = errors.Join(retErr, fmt.Errorf("close token writer: %w", err))
 		}
 	}()
+
+	ctx, cancel := context.WithTimeout(ctx, timeout)
+	defer cancel()
 
 	token, err := gmailext.Authorize(
 		ctx,

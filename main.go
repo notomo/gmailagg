@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"time"
 
 	"github.com/adrg/xdg"
 	"github.com/notomo/gmailagg/app"
@@ -19,6 +20,7 @@ const (
 	paramDryRun         = "dry-run"
 	paramLogDir         = "log-dir"
 	paramTokenPath      = "token"
+	paramTimeout        = "timeout"
 )
 
 func main() {
@@ -56,6 +58,7 @@ func main() {
 						os.Getenv("GMAILAGG_GMAIL_CREDENTIALS"),
 						c.String(paramTokenPath),
 						browser.New(os.Stdout, os.Stderr),
+						c.Duration(paramTimeout),
 						app.LogTransport(c.String(paramLogDir), http.DefaultTransport),
 						c.Bool(paramDryRun),
 					); err != nil {
@@ -69,6 +72,12 @@ func main() {
 						Required: false,
 						Value:    false,
 						Usage:    "dry run",
+					},
+					&cli.DurationFlag{
+						Name:     paramTimeout,
+						Required: false,
+						Value:    3 * time.Minute,
+						Usage:    "user operation's timeout",
 					},
 				},
 			},

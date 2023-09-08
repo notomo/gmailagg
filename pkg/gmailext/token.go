@@ -61,7 +61,13 @@ func Authorize(
 		return nil, fmt.Errorf("browser open: %w", err)
 	}
 
-	authCode := <-authCodeReceiver
+	var authCode string
+	select {
+	case authCode = <-authCodeReceiver:
+	case <-ctx.Done():
+		return nil, ctx.Err()
+	}
+
 	ctx = context.WithValue(ctx, oauth2.HTTPClient, &http.Client{
 		Timeout:   20 * time.Second,
 		Transport: baseTransport,
