@@ -10,7 +10,7 @@ CONFIG:=example_config.json
 LOG_DIR:=/tmp/gmailagg
 _execute:
 	rm -rf ${LOG_DIR}
-	go run main.go --config=${CONFIG} --log-dir=${LOG_DIR} --token=gs://gmailagg-oauth/token.json ${GMAILAGG_ARGS}
+	go run main.go --config=${CONFIG} --log-dir=${LOG_DIR} ${GMAILAGG_ARGS}
 auth:
 	$(MAKE) _execute GMAILAGG_ARGS="auth"
 auth_dry_run:

@@ -4,7 +4,6 @@ go 1.21
 
 require (
 	cloud.google.com/go/storage v1.32.0
-	github.com/adrg/xdg v0.4.0
 	github.com/henvic/httpretty v0.1.2
 	github.com/influxdata/influxdb-client-go/v2 v2.12.3
 	github.com/jarcoal/httpmock v1.3.1

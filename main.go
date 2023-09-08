@@ -6,10 +6,8 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
-	"path/filepath"
 	"time"
 
-	"github.com/adrg/xdg"
 	"github.com/notomo/gmailagg/app"
 	"github.com/notomo/gmailagg/pkg/browser"
 	"github.com/urfave/cli/v2"
@@ -42,9 +40,9 @@ func main() {
 			},
 			&cli.StringFlag{
 				Name:     paramTokenPath,
-				Required: true,
+				Required: false,
 				Usage:    "token file path",
-				Value:    filepath.Join(xdg.ConfigHome, "gmailagg/token.json"),
+				Value:    "gs://gmailagg-oauth/token.json",
 			},
 		},
 
