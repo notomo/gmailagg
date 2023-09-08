@@ -29,7 +29,7 @@ resource "google_cloud_run_v2_job" "job" {
 
         env {
           name  = "GMAILAGG_CONFIG"
-          value = "dummy"
+          value = sensitive("dummy")
         }
 
         env {
