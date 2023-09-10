@@ -81,4 +81,29 @@ func TestAuthorize(t *testing.T) {
 			false,
 		))
 	})
+
+	t.Run("does not save gcs object on timeout", func(t *testing.T) {
+		tmpDir := t.TempDir()
+
+		credentialsFilePath := filepath.Join(tmpDir, "application_default_credentials.json")
+		require.NoError(t, os.WriteFile(credentialsFilePath, gcstest.CredentialsJSON(), 0700))
+		t.Setenv("GOOGLE_APPLICATION_CREDENTIALS", credentialsFilePath)
+
+		ctx := context.Background()
+
+		tokenFilePath := "gs://test-bucket/test.json"
+
+		transport := httpmock.NewMockTransport()
+		gmailtest.RegisterTokenResponse(transport)
+
+		assert.ErrorIs(t, Authorize(
+			ctx,
+			string(gmailtest.CredentialsJSON()),
+			tokenFilePath,
+			&gmailtest.Opener{AuthCode: "test"},
+			0*time.Minute,
+			LogTransport("/tmp/gmailaggtest", transport),
+			false,
+		), context.Canceled)
+	})
 }
