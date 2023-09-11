@@ -40,3 +40,8 @@ updates:
       timezone: "Asia/Tokyo"
     assignees:
       - "notomo"
+    groups:
+      hashicorp-google-providers:
+        patterns:
+          - "hashicorp/google"
+          - "hashicorp/google-beta"
