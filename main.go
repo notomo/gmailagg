@@ -21,6 +21,11 @@ const (
 	paramTimeout        = "timeout"
 )
 
+const (
+	GMAILAGG_GMAIL_CREDENTIALS = "GMAILAGG_GMAIL_CREDENTIALS"
+	INFLUXDB_TOKEN             = "INFLUXDB_TOKEN"
+)
+
 func main() {
 	app.SetupLogger()
 
@@ -53,7 +58,7 @@ func main() {
 				Action: func(c *cli.Context) error {
 					if err := app.Authorize(
 						c.Context,
-						os.Getenv("GMAILAGG_GMAIL_CREDENTIALS"),
+						os.Getenv(GMAILAGG_GMAIL_CREDENTIALS),
 						c.String(paramTokenPath),
 						browser.New(os.Stdout, os.Stderr),
 						c.Duration(paramTimeout),
@@ -101,11 +106,11 @@ func main() {
 
 					if err := app.Run(
 						ctx,
-						os.Getenv("GMAILAGG_GMAIL_CREDENTIALS"),
+						os.Getenv(GMAILAGG_GMAIL_CREDENTIALS),
 						c.String(paramTokenPath),
 						config.Measurements,
 						config.Influxdb.ServerURL,
-						os.Getenv("INFLUXDB_TOKEN"),
+						os.Getenv(INFLUXDB_TOKEN),
 						config.Influxdb.Org,
 						config.Influxdb.Bucket,
 						baseTransport,
