@@ -1,11 +1,15 @@
 package app
 
 import (
+	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
-	"os"
+	"io"
+	"net/http"
 
 	"github.com/notomo/gmailagg/app/extractor"
+	"github.com/notomo/gmailagg/pkg/gcsext"
 )
 
 type Influxdb struct {
@@ -19,14 +23,29 @@ type Config struct {
 	Influxdb     Influxdb                `json:"influxdb"`
 }
 
-func ReadConfig(path string, s string) (*Config, error) {
+func ReadConfig(
+	ctx context.Context,
+	path string,
+	s string,
+	baseTransport http.RoundTripper,
+) (_ *Config, retErr error) {
 	var content []byte
 	if path == "" {
 		content = []byte(s)
 	} else {
-		b, err := os.ReadFile(path)
+		reader, err := gcsext.NewReaderByPath(ctx, path, baseTransport)
 		if err != nil {
-			return nil, fmt.Errorf("read file: %w", err)
+			return nil, fmt.Errorf("new config reader: %w", err)
+		}
+		defer func() {
+			if err := reader.Close(); err != nil {
+				retErr = errors.Join(retErr, fmt.Errorf("close config reader: %w", err))
+			}
+		}()
+
+		b, err := io.ReadAll(reader)
+		if err != nil {
+			return nil, fmt.Errorf("read all: %w", err)
 		}
 		content = b
 	}

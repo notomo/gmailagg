@@ -83,9 +83,13 @@ func main() {
 			{
 				Name: "run",
 				Action: func(c *cli.Context) error {
+					ctx := c.Context
+					baseTransport := app.LogTransport(c.String(paramLogDir), http.DefaultTransport)
 					config, err := app.ReadConfig(
+						ctx,
 						c.String(paramConfigFilePath),
 						os.Getenv("GMAILAGG_CONFIG"),
+						baseTransport,
 					)
 					if err != nil {
 						return fmt.Errorf("read config: %w", err)
@@ -97,7 +101,7 @@ func main() {
 					}
 
 					if err := app.Run(
-						c.Context,
+						ctx,
 						os.Getenv("GMAILAGG_GMAIL_CREDENTIALS"),
 						c.String(paramTokenPath),
 						config.Measurements,
@@ -105,7 +109,7 @@ func main() {
 						os.Getenv("INFLUXDB_TOKEN"),
 						config.Influxdb.Org,
 						config.Influxdb.Bucket,
-						app.LogTransport(c.String(paramLogDir), http.DefaultTransport),
+						baseTransport,
 						dryRunWriter,
 					); err != nil {
 						return fmt.Errorf("run: %w", err)

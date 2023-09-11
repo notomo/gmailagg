@@ -19,8 +19,6 @@ import (
 func TestRun(t *testing.T) {
 	t.Setenv("TZ", "UTC")
 
-	ctx := context.Background()
-
 	path := t.TempDir()
 
 	tokenFilePath := filepath.Join(path, "token.json")
@@ -104,7 +102,10 @@ func TestRun(t *testing.T) {
 			},
 		)
 
-		config, err := ReadConfig("", configStr)
+		ctx := context.Background()
+		baseTransport := LogTransport("/tmp/gmailaggtest", transport)
+
+		config, err := ReadConfig(ctx, "", configStr, baseTransport)
 		require.NoError(t, err)
 
 		var output bytes.Buffer
@@ -117,7 +118,7 @@ func TestRun(t *testing.T) {
 			"auth-token",
 			config.Influxdb.Org,
 			config.Influxdb.Bucket,
-			LogTransport("/tmp/gmailaggtest", transport),
+			baseTransport,
 			&output,
 		))
 
@@ -166,7 +167,10 @@ func TestRun(t *testing.T) {
 			httpmock.NewStringResponder(http.StatusOK, `{}`),
 		)
 
-		config, err := ReadConfig("", configStr)
+		ctx := context.Background()
+		baseTransport := LogTransport("/tmp/gmailaggtest", transport)
+
+		config, err := ReadConfig(ctx, "", configStr, baseTransport)
 		require.NoError(t, err)
 
 		require.NoError(t, Run(
@@ -178,7 +182,7 @@ func TestRun(t *testing.T) {
 			"auth-token",
 			config.Influxdb.Org,
 			config.Influxdb.Bucket,
-			LogTransport("/tmp/gmailaggtest", transport),
+			baseTransport,
 			nil,
 		))
 	})
@@ -218,7 +222,10 @@ func TestRun(t *testing.T) {
 
 		tokenFilePath := "gs://test-bucket/test.json"
 
-		config, err := ReadConfig("", configStr)
+		ctx := context.Background()
+		baseTransport := LogTransport("/tmp/gmailaggtest", transport)
+
+		config, err := ReadConfig(ctx, "", configStr, baseTransport)
 		require.NoError(t, err)
 
 		require.NoError(t, Run(
@@ -230,7 +237,7 @@ func TestRun(t *testing.T) {
 			"auth-token",
 			config.Influxdb.Org,
 			config.Influxdb.Bucket,
-			LogTransport("/tmp/gmailaggtest", transport),
+			baseTransport,
 			nil,
 		))
 	})

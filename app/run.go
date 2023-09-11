@@ -44,7 +44,7 @@ func Run(
 
 	tokenReader, err := gcsext.NewReaderByPath(ctx, tokenFilePath, baseTransport)
 	if err != nil {
-		return fmt.Errorf("new token writer: %w", err)
+		return fmt.Errorf("new token reader: %w", err)
 	}
 	defer func() {
 		if err := tokenReader.Close(); err != nil {
