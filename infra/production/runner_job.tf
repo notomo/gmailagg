@@ -8,10 +8,12 @@ resource "google_project_iam_member" "runner_job_storage_object_viewer" {
   member  = "serviceAccount:${google_service_account.runner_job.email}"
   project = var.project_id
   condition {
-    title      = "limit_to_token_bucket"
+    title      = "limit_buckets"
     expression = <<-EOT
       resource.name == "projects/_/buckets/${google_storage_bucket.gmailagg_oauth.name}" ||
-      resource.name.startsWith("projects/_/buckets/${google_storage_bucket.gmailagg_oauth.name}/objects/")
+      resource.name.startsWith("projects/_/buckets/${google_storage_bucket.gmailagg_oauth.name}/objects/") ||
+      resource.name == "projects/_/buckets/${google_storage_bucket.gmailagg_config.name}" ||
+      resource.name.startsWith("projects/_/buckets/${google_storage_bucket.gmailagg_config.name}/objects/")
     EOT
   }
 }
