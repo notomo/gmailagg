@@ -88,7 +88,6 @@ func main() {
 					config, err := app.ReadConfig(
 						ctx,
 						c.String(paramConfigFilePath),
-						os.Getenv("GMAILAGG_CONFIG"),
 						baseTransport,
 					)
 					if err != nil {

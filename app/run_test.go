@@ -77,7 +77,10 @@ func TestRun(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	configStr := string(configBytes)
+
+	tmpDir := t.TempDir()
+	configPath := filepath.Join(tmpDir, "config.json")
+	require.NoError(t, os.WriteFile(configPath, configBytes, 0700))
 
 	t.Run("can dry run", func(t *testing.T) {
 		transport := httpmock.NewMockTransport()
@@ -105,7 +108,7 @@ func TestRun(t *testing.T) {
 		ctx := context.Background()
 		baseTransport := LogTransport("/tmp/gmailaggtest", transport)
 
-		config, err := ReadConfig(ctx, "", configStr, baseTransport)
+		config, err := ReadConfig(ctx, configPath, baseTransport)
 		require.NoError(t, err)
 
 		var output bytes.Buffer
@@ -170,7 +173,7 @@ func TestRun(t *testing.T) {
 		ctx := context.Background()
 		baseTransport := LogTransport("/tmp/gmailaggtest", transport)
 
-		config, err := ReadConfig(ctx, "", configStr, baseTransport)
+		config, err := ReadConfig(ctx, configPath, baseTransport)
 		require.NoError(t, err)
 
 		require.NoError(t, Run(
@@ -188,8 +191,6 @@ func TestRun(t *testing.T) {
 	})
 
 	t.Run("can run with gcs token object", func(t *testing.T) {
-		tmpDir := t.TempDir()
-
 		credentialsFilePath := filepath.Join(tmpDir, "application_default_credentials.json")
 		require.NoError(t, os.WriteFile(credentialsFilePath, gcstest.CredentialsJSON(), 0700))
 		t.Setenv("GOOGLE_APPLICATION_CREDENTIALS", credentialsFilePath)
@@ -225,7 +226,7 @@ func TestRun(t *testing.T) {
 		ctx := context.Background()
 		baseTransport := LogTransport("/tmp/gmailaggtest", transport)
 
-		config, err := ReadConfig(ctx, "", configStr, baseTransport)
+		config, err := ReadConfig(ctx, configPath, baseTransport)
 		require.NoError(t, err)
 
 		require.NoError(t, Run(

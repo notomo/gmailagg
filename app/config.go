@@ -26,28 +26,21 @@ type Config struct {
 func ReadConfig(
 	ctx context.Context,
 	path string,
-	s string,
 	baseTransport http.RoundTripper,
 ) (_ *Config, retErr error) {
-	var content []byte
-	if path == "" {
-		content = []byte(s)
-	} else {
-		reader, err := gcsext.NewReaderByPath(ctx, path, baseTransport)
-		if err != nil {
-			return nil, fmt.Errorf("new config reader: %w", err)
+	reader, err := gcsext.NewReaderByPath(ctx, path, baseTransport)
+	if err != nil {
+		return nil, fmt.Errorf("new config reader: %w", err)
+	}
+	defer func() {
+		if err := reader.Close(); err != nil {
+			retErr = errors.Join(retErr, fmt.Errorf("close config reader: %w", err))
 		}
-		defer func() {
-			if err := reader.Close(); err != nil {
-				retErr = errors.Join(retErr, fmt.Errorf("close config reader: %w", err))
-			}
-		}()
+	}()
 
-		b, err := io.ReadAll(reader)
-		if err != nil {
-			return nil, fmt.Errorf("read all: %w", err)
-		}
-		content = b
+	content, err := io.ReadAll(reader)
+	if err != nil {
+		return nil, fmt.Errorf("read all: %w", err)
 	}
 
 	var config Config

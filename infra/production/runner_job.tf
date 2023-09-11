@@ -27,11 +27,6 @@ resource "google_cloud_run_v2_job" "runner_job" {
         image = "${var.region}-docker.pkg.dev/${var.project_id}/gmailagg-app/job"
 
         env {
-          name  = "GMAILAGG_CONFIG"
-          value = sensitive("dummy")
-        }
-
-        env {
           name = "GMAILAGG_GMAIL_CREDENTIALS"
           value_source {
             secret_key_ref {
@@ -71,7 +66,6 @@ resource "google_cloud_run_v2_job" "runner_job" {
 
   lifecycle {
     ignore_changes = [
-      template[0].template[0].containers[0].env[0].value,
       annotations,
       client,
       template[0].annotations
