@@ -8,16 +8,19 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/notomo/gmailagg/pkg/browser"
 	"github.com/notomo/gmailagg/pkg/gcsext"
 	"github.com/notomo/gmailagg/pkg/gmailext"
 )
+
+type Opener interface {
+	Open(ctx context.Context, url string) error
+}
 
 func Authorize(
 	ctx context.Context,
 	gmailCredentials string,
 	tokenFilePath string,
-	opener browser.Opener,
+	opener Opener,
 	timeout time.Duration,
 	baseTransport http.RoundTripper,
 	dryRun bool,

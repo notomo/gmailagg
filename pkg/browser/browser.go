@@ -7,10 +7,6 @@ import (
 	"os/exec"
 )
 
-type Opener interface {
-	Open(ctx context.Context, url string) error
-}
-
 type Command struct {
 	Executable   string
 	stdoutWriter io.Writer

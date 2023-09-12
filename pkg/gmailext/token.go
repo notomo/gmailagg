@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/notomo/gmailagg/pkg/browser"
 	"github.com/notomo/gmailagg/pkg/httpext"
 	"golang.org/x/oauth2"
 )
@@ -15,7 +14,9 @@ import (
 func Authorize(
 	ctx context.Context,
 	gmailCredentials string,
-	opener browser.Opener,
+	opener interface {
+		Open(context.Context, string) error
+	},
 	baseTransport http.RoundTripper,
 ) (token *oauth2.Token, retErr error) {
 	config, err := getOauth2Config(ctx, gmailCredentials)
