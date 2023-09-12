@@ -82,27 +82,23 @@ func TestRun(t *testing.T) {
 	configPath := filepath.Join(tmpDir, "config.json")
 	require.NoError(t, os.WriteFile(configPath, configBytes, 0700))
 
+	matchedMessage := gmailtest.Message{
+		ID:       "1111111111111111",
+		ThreadID: "ttttttttttttttt1",
+		Body: `
+金額 ￥ 1,000 割引 ￥ 100
+金額 ￥ 2,000 割引 ￥ 200
+`,
+		Timestamp: "2020-01-02T00:00:00Z",
+	}
+
 	t.Run("can dry run", func(t *testing.T) {
 		transport := httpmock.NewMockTransport()
 		gmailtest.RegisterTokenResponse(transport)
 		gmailtest.RegisterMessageResponse(
 			t,
 			transport,
-			gmailtest.Message{
-				ID:       "1111111111111111",
-				ThreadID: "ttttttttttttttt1",
-				Body: `
-金額 ￥ 1,000 割引 ￥ 100
-金額 ￥ 2,000 割引 ￥ 200
-`,
-				Timestamp: "2020-01-02T00:00:00Z",
-			},
-			gmailtest.Message{
-				ID:        "2222222222222222",
-				ThreadID:  "ttttttttttttttt2",
-				Body:      `others`,
-				Timestamp: "2020-01-03T00:00:00Z",
-			},
+			matchedMessage,
 		)
 
 		ctx := context.Background()
@@ -150,23 +146,12 @@ func TestRun(t *testing.T) {
 		gmailtest.RegisterMessageResponse(
 			t,
 			transport,
-			gmailtest.Message{
-				ID:        "1111111111111111",
-				ThreadID:  "ttttttttttttttt1",
-				Body:      `合計 ￥ 100`,
-				Timestamp: "2020-01-02T00:00:00Z",
-			},
-			gmailtest.Message{
-				ID:        "2222222222222222",
-				ThreadID:  "ttttttttttttttt2",
-				Body:      `others`,
-				Timestamp: "2020-01-03T00:00:00Z",
-			},
+			matchedMessage,
 		)
 		transport.RegisterMatcherResponder(
 			http.MethodPost,
 			"http://gmailagg-test-influxdb/api/v2/write?bucket=test-bucket&org=test-org&precision=ns",
-			httpmock.BodyContainsString(`measurementName,tagKey1=tagValue amount=100i `+gmailtest.ToUnixMilli(t, "2020-01-02T00:00:00Z")),
+			httpmock.BodyContainsString(`measurementName,tagKey1=tagValue amount=2700i `+gmailtest.ToUnixMilli(t, "2020-01-02T00:00:00Z")),
 			httpmock.NewStringResponder(http.StatusOK, `{}`),
 		)
 
@@ -200,23 +185,12 @@ func TestRun(t *testing.T) {
 		gmailtest.RegisterMessageResponse(
 			t,
 			transport,
-			gmailtest.Message{
-				ID:        "1111111111111111",
-				ThreadID:  "ttttttttttttttt1",
-				Body:      `合計 ￥ 100`,
-				Timestamp: "2020-01-02T00:00:00Z",
-			},
-			gmailtest.Message{
-				ID:        "2222222222222222",
-				ThreadID:  "ttttttttttttttt2",
-				Body:      `others`,
-				Timestamp: "2020-01-03T00:00:00Z",
-			},
+			matchedMessage,
 		)
 		transport.RegisterMatcherResponder(
 			http.MethodPost,
 			"http://gmailagg-test-influxdb/api/v2/write?bucket=test-bucket&org=test-org&precision=ns",
-			httpmock.BodyContainsString(`measurementName,tagKey1=tagValue amount=100i `+gmailtest.ToUnixMilli(t, "2020-01-02T00:00:00Z")),
+			httpmock.BodyContainsString(`measurementName,tagKey1=tagValue amount=2700i `+gmailtest.ToUnixMilli(t, "2020-01-02T00:00:00Z")),
 			httpmock.NewStringResponder(http.StatusOK, `{}`),
 		)
 		gcstest.RegisterGetResponse(transport, "test-bucket", "test.json", string(gmailtest.TokenJSON()))
@@ -241,5 +215,49 @@ func TestRun(t *testing.T) {
 			baseTransport,
 			nil,
 		))
+	})
+
+	t.Run("raises error if rule does not match with mail body", func(t *testing.T) {
+		credentialsFilePath := filepath.Join(tmpDir, "application_default_credentials.json")
+		require.NoError(t, os.WriteFile(credentialsFilePath, gcstest.CredentialsJSON(), 0700))
+		t.Setenv("GOOGLE_APPLICATION_CREDENTIALS", credentialsFilePath)
+
+		transport := httpmock.NewMockTransport()
+		gmailtest.RegisterTokenResponse(transport)
+		gmailtest.RegisterMessageResponse(
+			t,
+			transport,
+			gmailtest.Message{
+				ID:       "1111111111111111",
+				ThreadID: "ttttttttttttttt1",
+				Body: `
+others
+`,
+				Timestamp: "2020-01-02T00:00:00Z",
+			},
+		)
+		gcstest.RegisterGetResponse(transport, "test-bucket", "test.json", string(gmailtest.TokenJSON()))
+
+		tokenFilePath := "gs://test-bucket/test.json"
+
+		ctx := context.Background()
+		baseTransport := LogTransport("/tmp/gmailaggtest", transport)
+
+		config, err := ReadConfig(ctx, configPath, baseTransport)
+		require.NoError(t, err)
+
+		runErr := Run(
+			ctx,
+			string(gmailtest.CredentialsJSON()),
+			tokenFilePath,
+			config.Measurements,
+			config.Influxdb.ServerURL,
+			"auth-token",
+			config.Influxdb.Org,
+			config.Influxdb.Bucket,
+			baseTransport,
+			nil,
+		)
+		assert.Contains(t, runErr.Error(), "does not matched with")
 	})
 }

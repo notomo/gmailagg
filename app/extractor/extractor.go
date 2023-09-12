@@ -37,11 +37,15 @@ func makeMatchMap(
 	body string,
 	mappings map[string]RuleMapping,
 	maxMatchCount int,
-) map[string][]string {
+) (map[string][]string, error) {
 	matchMap := map[string][]string{}
 
-	captureNames := regex.SubexpNames()
 	allMatches := regex.FindAllStringSubmatch(body, maxMatchCount)
+	if len(allMatches) == 0 {
+		return nil, fmt.Errorf("does not matched with body:\n%s", body)
+	}
+
+	captureNames := regex.SubexpNames()
 	for _, matches := range allMatches {
 		matchesCount := len(matches)
 		for i, name := range captureNames {
@@ -65,7 +69,7 @@ func makeMatchMap(
 		}
 	}
 
-	return matchMap
+	return matchMap, nil
 }
 
 func resolve(
@@ -172,7 +176,11 @@ func toExtractor(
 				tags[k] = v
 			}
 
-			matchMap := makeMatchMap(regex, body, rule.Mappings, rule.MatchMaxCount)
+			matchMap, err := makeMatchMap(regex, body, rule.Mappings, rule.MatchMaxCount)
+			if err != nil {
+				return nil, fmt.Errorf("on pattern %s: %w", rule.Pattern, err)
+			}
+
 			for mappingName := range rule.Mappings {
 				if err := resolve(
 					mappingName,
