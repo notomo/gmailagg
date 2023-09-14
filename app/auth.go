@@ -22,6 +22,7 @@ func Authorize(
 	tokenFilePath string,
 	opener Opener,
 	timeout time.Duration,
+	port uint,
 	baseTransport http.RoundTripper,
 	dryRun bool,
 ) (retErr error) {
@@ -48,6 +49,7 @@ func Authorize(
 		ctx,
 		gmailCredentials,
 		opener,
+		port,
 		baseTransport,
 	)
 	if err != nil {

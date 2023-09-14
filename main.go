@@ -20,6 +20,7 @@ const (
 	paramLogDir         = "log-dir"
 	paramTokenPath      = "token"
 	paramTimeout        = "timeout"
+	paramPort           = "port"
 )
 
 const (
@@ -73,6 +74,7 @@ func main() {
 						c.String(paramTokenPath),
 						opener,
 						c.Duration(paramTimeout),
+						c.Uint(paramPort),
 						baseTransport,
 						c.Bool(paramDryRun),
 					); err != nil {
@@ -92,6 +94,12 @@ func main() {
 						Required: false,
 						Value:    3 * time.Minute,
 						Usage:    "user operation's timeout",
+					},
+					&cli.UintFlag{
+						Name:     paramPort,
+						Required: false,
+						Value:    0,
+						Usage:    "redirect uri port",
 					},
 				},
 			},

@@ -3,8 +3,8 @@ resource "google_service_account" "authorizer_job" {
   display_name = "gmailagg cloud_run authorizer job service account"
 }
 
-resource "google_project_iam_member" "authorizer_job_storage_object_viewer" {
-  role    = "roles/storage.objectViewer"
+resource "google_project_iam_member" "authorizer_job_storage_object_user" {
+  role    = "roles/storage.objectUser"
   member  = "serviceAccount:${google_service_account.authorizer_job.email}"
   project = var.project_id
   condition {
@@ -28,7 +28,7 @@ resource "google_cloud_run_v2_job" "authorizer_job" {
       containers {
         image = "${var.region}-docker.pkg.dev/${var.project_id}/gmailagg-app/job"
 
-        args = ["auth", "--timeout=2m"]
+        args = ["auth", "--timeout=2m", "--port=9999"]
 
         env {
           name = "GMAILAGG_GMAIL_CREDENTIALS"

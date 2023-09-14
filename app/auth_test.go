@@ -37,6 +37,7 @@ func TestAuthorize(t *testing.T) {
 			tokenFilePath,
 			&gmailtest.Opener{AuthCode: "test"},
 			3*time.Minute,
+			0,
 			LogTransport("/tmp/gmailaggtest", transport),
 			false,
 		))
@@ -77,6 +78,7 @@ func TestAuthorize(t *testing.T) {
 			tokenFilePath,
 			&gmailtest.Opener{AuthCode: "test"},
 			3*time.Minute,
+			0,
 			LogTransport("/tmp/gmailaggtest", transport),
 			false,
 		))
@@ -102,6 +104,7 @@ func TestAuthorize(t *testing.T) {
 			tokenFilePath,
 			&gmailtest.Opener{AuthCode: "test"},
 			0*time.Minute,
+			0,
 			LogTransport("/tmp/gmailaggtest", transport),
 			false,
 		), context.Canceled)

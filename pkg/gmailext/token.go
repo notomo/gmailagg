@@ -17,6 +17,7 @@ func Authorize(
 	opener interface {
 		Open(context.Context, string) error
 	},
+	port uint,
 	baseTransport http.RoundTripper,
 ) (token *oauth2.Token, retErr error) {
 	config, err := getOauth2Config(ctx, gmailCredentials)
@@ -46,7 +47,7 @@ func Authorize(
 		authCodeReceiver <- authCode
 	})
 
-	url, server, listener, err := httpext.NewServer(mux)
+	url, server, listener, err := httpext.NewServer(mux, port)
 	if err != nil {
 		return nil, fmt.Errorf("new server: %w", err)
 	}
