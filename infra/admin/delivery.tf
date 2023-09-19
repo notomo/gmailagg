@@ -48,7 +48,6 @@ resource "google_project_iam_custom_role" "terraform" {
     "compute.disks.get",
     "storage.buckets.get",
     "secretmanager.secrets.get",
-    "secretmanager.versions.get",
     "secretmanager.secrets.getIamPolicy",
     "iam.serviceAccounts.get",
     "run.jobs.get",
