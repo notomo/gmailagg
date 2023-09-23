@@ -1,4 +1,4 @@
-package app
+package app_test
 
 import (
 	"context"
@@ -10,15 +10,23 @@ import (
 	"time"
 
 	"github.com/jarcoal/httpmock"
+	"github.com/notomo/gmailagg/app"
 	"github.com/notomo/gmailagg/pkg/fstestext"
 	"github.com/notomo/gmailagg/pkg/gcsext/gcstest"
 	"github.com/notomo/gmailagg/pkg/gmailext/gmailtest"
+	"github.com/notomo/gmailagg/pkg/googleoauthtest"
+	"github.com/notomo/gmailagg/pkg/httpmockext"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func TestAuthorize(t *testing.T) {
 	t.Setenv("TZ", "UTC")
+
+	logDir := "/tmp/gmailaggtest"
+	defaultOpener := &gmailtest.Opener{AuthCode: "test"}
+	defaultTimeout := 3 * time.Minute
+	defaultPort := uint(0)
 
 	t.Run("can save as local file", func(t *testing.T) {
 		ctx := context.Background()
@@ -29,16 +37,17 @@ func TestAuthorize(t *testing.T) {
 		tokenFilePath := filepath.Join(tmpDir, tokenFileName)
 
 		transport := httpmock.NewMockTransport()
-		gmailtest.RegisterTokenResponse(transport)
+		defer httpmockext.AssertCalled(t, transport)
+		transport.RegisterResponder(googleoauthtest.TokenResponse())
 
-		require.NoError(t, Authorize(
+		require.NoError(t, app.Authorize(
 			ctx,
 			string(gmailtest.CredentialsJSON()),
 			tokenFilePath,
-			&gmailtest.Opener{AuthCode: "test"},
-			3*time.Minute,
-			0,
-			LogTransport("/tmp/gmailaggtest", transport),
+			defaultOpener,
+			defaultTimeout,
+			defaultPort,
+			app.LogTransport(logDir, transport),
 			false,
 		))
 
@@ -46,7 +55,7 @@ func TestAuthorize(t *testing.T) {
 		tokenJSON := fstestext.GetFileContent(t, os.DirFS(tmpDir), tokenFileName)
 		require.NoError(t, json.Unmarshal(tokenJSON, &got))
 
-		want := gmailtest.Token(t)
+		want := googleoauthtest.Token(t)
 		// ignore expiry (depends time.Now())
 		delete(want, "expiry")
 		delete(got, "expiry")
@@ -55,57 +64,50 @@ func TestAuthorize(t *testing.T) {
 	})
 
 	t.Run("can save as gcs object", func(t *testing.T) {
-		tmpDir := t.TempDir()
-
-		credentialsFilePath := filepath.Join(tmpDir, "application_default_credentials.json")
-		require.NoError(t, os.WriteFile(credentialsFilePath, gcstest.CredentialsJSON(), 0700))
-		t.Setenv("GOOGLE_APPLICATION_CREDENTIALS", credentialsFilePath)
+		googleoauthtest.SetGoogleApplicationCredentials(t)
 
 		ctx := context.Background()
 
 		tokenFilePath := "gs://test-bucket/test.json"
 
-		token := gmailtest.Token(t)
+		token := googleoauthtest.Token(t)
 		requestBodyShouldContains := fmt.Sprintf(`"refresh_token": "%s"`, token["refresh_token"])
 
 		transport := httpmock.NewMockTransport()
-		gmailtest.RegisterTokenResponse(transport)
-		gcstest.RegisterUploadResponse(t, transport, "test-bucket", "test.json", requestBodyShouldContains)
+		defer httpmockext.AssertCalled(t, transport)
+		transport.RegisterResponder(googleoauthtest.TokenResponse())
+		transport.RegisterMatcherResponder(gcstest.UploadResponse(t, "test-bucket", "test.json", requestBodyShouldContains))
 
-		require.NoError(t, Authorize(
+		require.NoError(t, app.Authorize(
 			ctx,
 			string(gmailtest.CredentialsJSON()),
 			tokenFilePath,
-			&gmailtest.Opener{AuthCode: "test"},
-			3*time.Minute,
-			0,
-			LogTransport("/tmp/gmailaggtest", transport),
+			defaultOpener,
+			defaultTimeout,
+			defaultPort,
+			app.LogTransport(logDir, transport),
 			false,
 		))
 	})
 
 	t.Run("does not save gcs object on timeout", func(t *testing.T) {
-		tmpDir := t.TempDir()
-
-		credentialsFilePath := filepath.Join(tmpDir, "application_default_credentials.json")
-		require.NoError(t, os.WriteFile(credentialsFilePath, gcstest.CredentialsJSON(), 0700))
-		t.Setenv("GOOGLE_APPLICATION_CREDENTIALS", credentialsFilePath)
+		googleoauthtest.SetGoogleApplicationCredentials(t)
 
 		ctx := context.Background()
 
 		tokenFilePath := "gs://test-bucket/test.json"
 
 		transport := httpmock.NewMockTransport()
-		gmailtest.RegisterTokenResponse(transport)
+		defer httpmockext.AssertCalled(t, transport)
 
-		assert.ErrorIs(t, Authorize(
+		assert.ErrorIs(t, app.Authorize(
 			ctx,
 			string(gmailtest.CredentialsJSON()),
 			tokenFilePath,
-			&gmailtest.Opener{AuthCode: "test"},
+			defaultOpener,
 			0*time.Minute,
-			0,
-			LogTransport("/tmp/gmailaggtest", transport),
+			defaultPort,
+			app.LogTransport(logDir, transport),
 			false,
 		), context.Canceled)
 	})

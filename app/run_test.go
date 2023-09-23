@@ -1,4 +1,4 @@
-package app
+package app_test
 
 import (
 	"bytes"
@@ -10,8 +10,11 @@ import (
 	"testing"
 
 	"github.com/jarcoal/httpmock"
+	"github.com/notomo/gmailagg/app"
 	"github.com/notomo/gmailagg/pkg/gcsext/gcstest"
 	"github.com/notomo/gmailagg/pkg/gmailext/gmailtest"
+	"github.com/notomo/gmailagg/pkg/googleoauthtest"
+	"github.com/notomo/gmailagg/pkg/httpmockext"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -19,10 +22,12 @@ import (
 func TestRun(t *testing.T) {
 	t.Setenv("TZ", "UTC")
 
+	logDir := "/tmp/gmailaggtest"
+
 	path := t.TempDir()
 
 	tokenFilePath := filepath.Join(path, "token.json")
-	require.NoError(t, os.WriteFile(tokenFilePath, gmailtest.TokenJSON(), 0700))
+	require.NoError(t, os.WriteFile(tokenFilePath, googleoauthtest.TokenJSON(), 0700))
 
 	configMap := map[string]any{
 		"measurements": []map[string]any{
@@ -94,7 +99,8 @@ func TestRun(t *testing.T) {
 
 	t.Run("can dry run", func(t *testing.T) {
 		transport := httpmock.NewMockTransport()
-		gmailtest.RegisterTokenResponse(transport)
+		defer httpmockext.AssertCalled(t, transport)
+		transport.RegisterResponder(googleoauthtest.TokenResponse())
 		gmailtest.RegisterMessageResponse(
 			t,
 			transport,
@@ -102,13 +108,13 @@ func TestRun(t *testing.T) {
 		)
 
 		ctx := context.Background()
-		baseTransport := LogTransport("/tmp/gmailaggtest", transport)
+		baseTransport := app.LogTransport(logDir, transport)
 
-		config, err := ReadConfig(ctx, configPath, baseTransport)
+		config, err := app.ReadConfig(ctx, configPath, baseTransport)
 		require.NoError(t, err)
 
 		var output bytes.Buffer
-		require.NoError(t, Run(
+		require.NoError(t, app.Run(
 			ctx,
 			string(gmailtest.CredentialsJSON()),
 			tokenFilePath,
@@ -142,7 +148,8 @@ func TestRun(t *testing.T) {
 
 	t.Run("can run with local token file", func(t *testing.T) {
 		transport := httpmock.NewMockTransport()
-		gmailtest.RegisterTokenResponse(transport)
+		defer httpmockext.AssertCalled(t, transport)
+		transport.RegisterResponder(googleoauthtest.TokenResponse())
 		gmailtest.RegisterMessageResponse(
 			t,
 			transport,
@@ -156,12 +163,12 @@ func TestRun(t *testing.T) {
 		)
 
 		ctx := context.Background()
-		baseTransport := LogTransport("/tmp/gmailaggtest", transport)
+		baseTransport := app.LogTransport(logDir, transport)
 
-		config, err := ReadConfig(ctx, configPath, baseTransport)
+		config, err := app.ReadConfig(ctx, configPath, baseTransport)
 		require.NoError(t, err)
 
-		require.NoError(t, Run(
+		require.NoError(t, app.Run(
 			ctx,
 			string(gmailtest.CredentialsJSON()),
 			tokenFilePath,
@@ -176,12 +183,11 @@ func TestRun(t *testing.T) {
 	})
 
 	t.Run("can run with gcs token object", func(t *testing.T) {
-		credentialsFilePath := filepath.Join(tmpDir, "application_default_credentials.json")
-		require.NoError(t, os.WriteFile(credentialsFilePath, gcstest.CredentialsJSON(), 0700))
-		t.Setenv("GOOGLE_APPLICATION_CREDENTIALS", credentialsFilePath)
+		googleoauthtest.SetGoogleApplicationCredentials(t)
 
 		transport := httpmock.NewMockTransport()
-		gmailtest.RegisterTokenResponse(transport)
+		defer httpmockext.AssertCalled(t, transport)
+		transport.RegisterResponder(googleoauthtest.TokenResponse())
 		gmailtest.RegisterMessageResponse(
 			t,
 			transport,
@@ -193,17 +199,17 @@ func TestRun(t *testing.T) {
 			httpmock.BodyContainsString(`measurementName,tagKey1=tagValue amount=2700i `+gmailtest.ToUnixMilli(t, "2020-01-02T00:00:00Z")),
 			httpmock.NewStringResponder(http.StatusOK, `{}`),
 		)
-		gcstest.RegisterGetResponse(transport, "test-bucket", "test.json", string(gmailtest.TokenJSON()))
+		transport.RegisterResponder(gcstest.GetResponse("test-bucket", "test.json", string(googleoauthtest.TokenJSON())))
 
 		tokenFilePath := "gs://test-bucket/test.json"
 
 		ctx := context.Background()
-		baseTransport := LogTransport("/tmp/gmailaggtest", transport)
+		baseTransport := app.LogTransport(logDir, transport)
 
-		config, err := ReadConfig(ctx, configPath, baseTransport)
+		config, err := app.ReadConfig(ctx, configPath, baseTransport)
 		require.NoError(t, err)
 
-		require.NoError(t, Run(
+		require.NoError(t, app.Run(
 			ctx,
 			string(gmailtest.CredentialsJSON()),
 			tokenFilePath,
@@ -218,12 +224,11 @@ func TestRun(t *testing.T) {
 	})
 
 	t.Run("raises error if rule does not match with mail body", func(t *testing.T) {
-		credentialsFilePath := filepath.Join(tmpDir, "application_default_credentials.json")
-		require.NoError(t, os.WriteFile(credentialsFilePath, gcstest.CredentialsJSON(), 0700))
-		t.Setenv("GOOGLE_APPLICATION_CREDENTIALS", credentialsFilePath)
+		googleoauthtest.SetGoogleApplicationCredentials(t)
 
 		transport := httpmock.NewMockTransport()
-		gmailtest.RegisterTokenResponse(transport)
+		defer httpmockext.AssertCalled(t, transport)
+		transport.RegisterResponder(googleoauthtest.TokenResponse())
 		gmailtest.RegisterMessageResponse(
 			t,
 			transport,
@@ -236,17 +241,17 @@ others
 				Timestamp: "2020-01-02T00:00:00Z",
 			},
 		)
-		gcstest.RegisterGetResponse(transport, "test-bucket", "test.json", string(gmailtest.TokenJSON()))
+		transport.RegisterResponder(gcstest.GetResponse("test-bucket", "test.json", string(googleoauthtest.TokenJSON())))
 
 		tokenFilePath := "gs://test-bucket/test.json"
 
 		ctx := context.Background()
-		baseTransport := LogTransport("/tmp/gmailaggtest", transport)
+		baseTransport := app.LogTransport(logDir, transport)
 
-		config, err := ReadConfig(ctx, configPath, baseTransport)
+		config, err := app.ReadConfig(ctx, configPath, baseTransport)
 		require.NoError(t, err)
 
-		runErr := Run(
+		runErr := app.Run(
 			ctx,
 			string(gmailtest.CredentialsJSON()),
 			tokenFilePath,

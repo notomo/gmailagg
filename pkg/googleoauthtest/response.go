@@ -1,4 +1,4 @@
-package gmailtest
+package googleoauthtest
 
 import (
 	"encoding/json"
@@ -7,6 +7,18 @@ import (
 
 	"github.com/jarcoal/httpmock"
 )
+
+func TokenResponse() (string, string, httpmock.Responder) {
+	return http.MethodPost,
+		"https://oauth2.googleapis.com/token",
+		httpmock.NewStringResponder(http.StatusOK, `{
+  "access_token": "XXXX.XXXXXXXXXXXXXXXXXXXXXXXXXXXXX-XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+  "expires_in": 3599,
+  "refresh_token": "1//XXXXXXXXXXXXXXXXXXXXXXXXXXXX-XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX-XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+  "scope": "https://www.googleapis.com/auth/gmail.readonly",
+  "token_type": "Bearer"
+}`)
+}
 
 func TokenJSON() []byte {
 	return []byte(`{
@@ -24,18 +36,4 @@ func Token(t *testing.T) map[string]string {
 		t.Fatal(err)
 	}
 	return m
-}
-
-func RegisterTokenResponse(transport *httpmock.MockTransport) {
-	transport.RegisterResponder(
-		http.MethodPost,
-		"https://oauth2.googleapis.com/token",
-		httpmock.NewStringResponder(http.StatusOK, `{
-  "access_token": "XXXX.XXXXXXXXXXXXXXXXXXXXXXXXXXXXX-XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
-  "expires_in": 3599,
-  "refresh_token": "1//XXXXXXXXXXXXXXXXXXXXXXXXXXXX-XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX-XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
-  "scope": "https://www.googleapis.com/auth/gmail.readonly",
-  "token_type": "Bearer"
-}`),
-	)
 }

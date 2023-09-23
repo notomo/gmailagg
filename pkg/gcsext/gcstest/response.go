@@ -10,13 +10,14 @@ import (
 	"github.com/jarcoal/httpmock"
 )
 
-func RegisterUploadResponse(
+func UploadResponse(
 	t *testing.T,
-	transport *httpmock.MockTransport,
 	bucket string,
 	object string,
 	requestBodyShouldContains string,
-) {
+) (string, string, httpmock.Matcher, httpmock.Responder) {
+	t.Helper()
+
 	u := fmt.Sprintf(
 		"https://storage.googleapis.com/upload/storage/v1/b/%s/o?alt=json&name=%s&prettyPrint=false&projection=full&uploadType=multipart",
 		bucket,
@@ -48,29 +49,23 @@ func RegisterUploadResponse(
 		t.Fatal(err)
 	}
 
-	transport.RegisterMatcherResponder(
-		http.MethodPost,
+	return http.MethodPost,
 		u,
 		httpmock.BodyContainsString(requestBodyShouldContains),
-		httpmock.NewStringResponder(http.StatusOK, responseBody.String()),
-	)
+		httpmock.NewStringResponder(http.StatusOK, responseBody.String())
 }
 
-func RegisterGetResponse(
-	transport *httpmock.MockTransport,
+func GetResponse(
 	bucket string,
 	object string,
 	body string,
-) {
+) (string, string, httpmock.Responder) {
 	u := fmt.Sprintf(
 		"https://storage.googleapis.com/%s/%s",
 		bucket,
 		object,
 	)
-
-	transport.RegisterResponder(
-		http.MethodGet,
+	return http.MethodGet,
 		u,
-		httpmock.NewStringResponder(http.StatusOK, body),
-	)
+		httpmock.NewStringResponder(http.StatusOK, body)
 }
