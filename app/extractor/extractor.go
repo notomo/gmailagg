@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log/slog"
 	"regexp"
+	"strings"
 	"time"
 
 	"github.com/notomo/gmailagg/pkg/gmailext"
@@ -155,6 +156,11 @@ func toExtractor(
 ) (*Extractor, error) {
 	logger := slog.Default()
 
+	newlineReplacer := strings.NewReplacer(
+		"\r\n", "\n",
+		"\r", "\n",
+	)
+
 	funcs := []func(*gmail.Message) (*influxdb.Point, error){}
 	for _, rule := range rules {
 		regex, err := regexp.Compile(rule.Pattern)
@@ -167,6 +173,7 @@ func toExtractor(
 			if err != nil {
 				return nil, err
 			}
+			body = newlineReplacer.Replace(body)
 			logger.Debug("message", "body", body)
 
 			fields := map[string]any{}
