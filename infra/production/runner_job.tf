@@ -81,7 +81,7 @@ resource "google_cloud_run_v2_job" "runner_job" {
 resource "google_cloud_scheduler_job" "runner_job" {
   name             = "gmailagg-runner-job"
   description      = "gmailagg runner job scheduler"
-  schedule         = "0 0 */3 * *"
+  schedule         = "0 0 * * *"
   time_zone        = "Asia/Tokyo"
   attempt_deadline = "330s"
   region           = var.region
