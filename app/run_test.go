@@ -32,7 +32,8 @@ func TestRun(t *testing.T) {
 	configMap := map[string]any{
 		"measurements": []map[string]any{
 			{
-				"name": "measurementName",
+				"name":  "measurementName",
+				"query": "measurement_query",
 				"aggregations": []map[string]any{
 					{
 						"query": "query",

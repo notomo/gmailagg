@@ -8,6 +8,7 @@ import (
 
 type Measurement struct {
 	Name         string
+	Query        string
 	Aggregations []Aggregation
 }
 

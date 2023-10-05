@@ -23,7 +23,8 @@ func List(
 	extractors := []Extractor{}
 	for _, measurement := range measurements {
 		for _, aggregation := range measurement.Aggregations {
-			e, err := toExtractor(measurement.Name, aggregation.Query, aggregation.Rules, aggregation.Tags)
+			query := strings.Join([]string{measurement.Query, aggregation.Query}, " ")
+			e, err := toExtractor(measurement.Name, query, aggregation.Rules, aggregation.Tags)
 			if err != nil {
 				return nil, err
 			}
