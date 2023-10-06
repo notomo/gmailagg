@@ -1,7 +1,7 @@
 resource "google_secret_manager_secret" "gmail_oauth_client_credentials" {
   secret_id = "gmail_oauth_client_credentials"
   replication {
-    automatic = true
+    auto {}
   }
   project = var.project_id
 }
@@ -23,7 +23,7 @@ resource "google_secret_manager_secret_iam_member" "authorizer_job_gmail_oauth_c
 resource "google_secret_manager_secret" "influxdb_token" {
   secret_id = "influxdb_token"
   replication {
-    automatic = true
+    auto {}
   }
   project = var.project_id
 }
@@ -38,7 +38,7 @@ resource "google_secret_manager_secret_iam_member" "runner_job_influxdb_token_ac
 resource "google_secret_manager_secret" "tailscale_reusable_auth_key" {
   secret_id = "tailscale_reusable_auth_key"
   replication {
-    automatic = true
+    auto {}
   }
   project = var.project_id
 }
@@ -60,7 +60,7 @@ resource "google_secret_manager_secret_iam_member" "authorizer_job_tailscale_reu
 resource "google_secret_manager_secret" "gmailagg_slack_webhook_url" {
   secret_id = "gmailagg_slack_webhook_url"
   replication {
-    automatic = true
+    auto {}
   }
   project = var.project_id
 }
