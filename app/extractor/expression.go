@@ -21,6 +21,11 @@ func resolveExpression[T int | float64](
 	parse func(string) (T, error),
 ) (*T, error) {
 	if expression == "" {
+		if raw == "" { // for optional match
+			var zero T
+			return &zero, nil
+		}
+
 		v, err := parse(raw)
 		if err != nil {
 			return nil, err
