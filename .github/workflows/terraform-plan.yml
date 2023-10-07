@@ -22,6 +22,10 @@ jobs:
   plan_production:
     runs-on: ubuntu-latest
 
+    concurrency:
+      group: terraform-production
+      cancel-in-progress: false
+
     defaults:
       run:
         working-directory: ./infra/production
@@ -52,6 +56,10 @@ jobs:
 
   validate_admin:
     runs-on: ubuntu-latest
+
+    concurrency:
+      group: terraform-admin
+      cancel-in-progress: false
 
     defaults:
       run:

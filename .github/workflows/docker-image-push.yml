@@ -19,6 +19,10 @@ jobs:
   build_and_push:
     runs-on: ubuntu-latest
 
+    concurrency:
+      group: docker-push
+      cancel-in-progress: false
+
     permissions:
       contents: 'read'
       id-token: 'write'
