@@ -3,7 +3,13 @@ on:
   push:
     branches:
       - '*'
+    paths:
+      - 'infra/**'
+      - '.github/workflows/terraform-plan.yml'
   pull_request:
+    paths:
+      - 'infra/**'
+      - '.github/workflows/terraform-plan.yml'
 
 env:
   TERRAFORM_VERSION: '1.5.7'
