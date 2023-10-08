@@ -52,6 +52,7 @@ resource "google_project_iam_custom_role" "terraform" {
     "iam.serviceAccounts.get",
     "run.jobs.get",
     "cloudscheduler.jobs.get",
+    "monitoring.alertPolicies.get",
   ]
 }
 
