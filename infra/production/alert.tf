@@ -5,6 +5,7 @@ resource "google_monitoring_alert_policy" "job_error" {
 
   notification_channels = [
     "projects/gmailagg/notificationChannels/4926407567727485434",
+    "projects/gmailagg/notificationChannels/438750772524549281",
   ]
 
   project = var.project_id
