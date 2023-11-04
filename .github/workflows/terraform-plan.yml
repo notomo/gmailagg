@@ -42,7 +42,7 @@ jobs:
           workload_identity_provider: projects/647706074962/locations/global/workloadIdentityPools/gmailagg-pool/providers/github-actions
           service_account: gmailagg-delivery@gmailagg.iam.gserviceaccount.com
 
-      - uses: hashicorp/setup-terraform@v2
+      - uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: ${{ env.TERRAFORM_VERSION }}
 
@@ -77,7 +77,7 @@ jobs:
           workload_identity_provider: projects/647706074962/locations/global/workloadIdentityPools/gmailagg-pool/providers/github-actions
           service_account: gmailagg-delivery@gmailagg.iam.gserviceaccount.com
 
-      - uses: hashicorp/setup-terraform@v2
+      - uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: ${{ env.TERRAFORM_VERSION }}
 
