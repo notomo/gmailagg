@@ -65,3 +65,4 @@ runcmd:
   - bash /tmp/install-tailscale.sh
   - systemctl start tailscaled.service
   - /mnt/disks/tailscale/tailscale up --authkey "${tailscale_auth_key}" -ssh
+  - /mnt/disks/tailscale/tailscale set --auto-update
