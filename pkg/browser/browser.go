@@ -28,5 +28,13 @@ func (c *Command) Open(ctx context.Context, url string) error {
 	cmd := exec.CommandContext(ctx, c.Executable, url)
 	cmd.Stdout = c.stdoutWriter
 	cmd.Stderr = c.stderrWriter
-	return cmd.Run()
+	if err := cmd.Run(); err != nil {
+		return err
+	}
+
+	if _, err := c.stdoutWriter.Write([]byte("Authorize in your browser.\n")); err != nil {
+		return err
+	}
+
+	return nil
 }
