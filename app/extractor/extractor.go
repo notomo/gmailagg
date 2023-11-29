@@ -174,8 +174,9 @@ func toExtractor(
 			if err != nil {
 				return nil, err
 			}
-			body = newlineReplacer.Replace(body)
 			logger.Debug("message", "body", body)
+			body = newlineReplacer.Replace(body)
+			body = rule.Replacers.Apply(body)
 
 			fields := map[string]any{}
 			hiddenFields := map[string]any{}

@@ -25,6 +25,7 @@ type AggregationRule struct {
 	Pattern       string
 	MatchMaxCount int
 	Mappings      map[string]RuleMapping
+	Replacers     Replacers
 }
 
 type TargetType string
@@ -48,18 +49,24 @@ func (r *Replacer) Apply(s string) string {
 	return strings.ReplaceAll(s, r.Old, r.New)
 }
 
+type Replacers []Replacer
+
+func (rs Replacers) Apply(s string) string {
+	for _, replacer := range rs {
+		s = replacer.Apply(s)
+	}
+	return s
+}
+
 type RuleMapping struct {
 	Type       RuleMappingType          `json:"type"`
 	DataType   RuleMappingFieldDataType `json:"dataType"`
-	Replacers  []Replacer               `json:"replacers"`
+	Replacers  Replacers                `json:"replacers"`
 	Expression string                   `json:"expression"`
 }
 
 func (m *RuleMapping) Replace(s string) string {
-	for _, replacer := range m.Replacers {
-		s = replacer.Apply(s)
-	}
-	return s
+	return m.Replacers.Apply(s)
 }
 
 func (m *RuleMapping) FieldValue(
