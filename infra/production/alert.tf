@@ -25,7 +25,7 @@ resource "google_monitoring_alert_policy" "job_error" {
         resource.type = "cloud_run_job"
         resource.labels.job_name = "${google_cloud_run_v2_job.runner_job.name}"
         resource.labels.location = "${var.region}"
-        jsonPayload.level = "ERROR"
+        severity = "ERROR"
       EOT
       label_extractors = {
         "error" = "EXTRACT(jsonPayload.\"msg\")"
