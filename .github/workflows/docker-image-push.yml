@@ -38,7 +38,7 @@ jobs:
           workload_identity_provider: projects/647706074962/locations/global/workloadIdentityPools/gmailagg-pool/providers/github-actions
           service_account: gmailagg-delivery@gmailagg.iam.gserviceaccount.com
 
-      - uses: google-github-actions/setup-gcloud@v1
+      - uses: google-github-actions/setup-gcloud@v2
 
       - run: make setup_docker_auth
       - run: make push
