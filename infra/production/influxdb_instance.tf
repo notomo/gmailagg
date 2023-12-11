@@ -71,7 +71,7 @@ module "influxdb_container" {
       },
       {
         name  = "INFLUXD_SESSION_LENGTH"
-        value = "1440"
+        value = "10080"
       },
     ]
 
