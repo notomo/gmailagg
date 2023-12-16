@@ -3,7 +3,7 @@ module github.com/notomo/gmailagg
 go 1.21
 
 require (
-	cloud.google.com/go/storage v1.35.1
+	cloud.google.com/go/storage v1.36.0
 	github.com/henvic/httpretty v0.1.3
 	github.com/influxdata/influxdb-client-go/v2 v2.13.0
 	github.com/jarcoal/httpmock v1.3.1
