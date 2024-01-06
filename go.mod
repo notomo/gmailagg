@@ -9,7 +9,7 @@ require (
 	github.com/jarcoal/httpmock v1.3.1
 	github.com/notomo/httpwriter v0.0.0-20230801001457-d247ac2be072
 	github.com/stretchr/testify v1.8.4
-	github.com/urfave/cli/v2 v2.27.0
+	github.com/urfave/cli/v2 v2.27.1
 	golang.org/x/oauth2 v0.15.0
 	golang.org/x/sync v0.5.0
 	google.golang.org/api v0.154.0
