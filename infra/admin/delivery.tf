@@ -11,6 +11,10 @@ module "gh_oidc" {
       attribute = "attribute.repository/notomo/gmailagg"
     }
   }
+  attribute_condition   = <<-EOT
+    assertion.repository=='notomo/gmailagg'
+  EOT
+  provider_display_name = "github-actions"
 }
 
 resource "google_service_account" "delivery" {
