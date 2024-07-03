@@ -31,7 +31,7 @@ module "influxdb_container" {
   source  = "terraform-google-modules/container-vm/google"
   version = "~> 3.1"
 
-  cos_image_name = "cos-beta-109-17800-0-13"
+  cos_image_name = "cos-113-18244-85-49"
 
   container = {
     image = "marketplace.gcr.io/google/influxdb2:2.7"
