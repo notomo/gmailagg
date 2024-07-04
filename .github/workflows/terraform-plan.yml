@@ -11,9 +11,6 @@ on:
       - 'infra/**'
       - '.github/workflows/terraform-plan.yml'
 
-env:
-  TERRAFORM_VERSION: '1.5.7'
-
 defaults:
   run:
     working-directory: ./infra/production
@@ -36,6 +33,10 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+
+      - run: |
+          terraform_version=$(../terraform_version.sh)
+          echo "TERRAFORM_VERSION=${terraform_version}" >> "$GITHUB_ENV"
 
       - uses: google-github-actions/auth@v2
         with:
@@ -71,6 +72,10 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+
+      - run: |
+          terraform_version=$(../terraform_version.sh)
+          echo "TERRAFORM_VERSION=${terraform_version}" >> "$GITHUB_ENV"
 
       - uses: google-github-actions/auth@v2
         with:
