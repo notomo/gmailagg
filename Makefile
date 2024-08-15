@@ -71,3 +71,6 @@ build:
 
 push: build
 	docker push ${IMAGE}
+
+docker_check:
+	docker build --check .

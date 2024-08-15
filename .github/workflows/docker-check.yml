@@ -1,0 +1,14 @@
+name: docker check
+on:
+  push:
+    paths:
+      - 'Dockerfile'
+      - '.github/workflows/docker-check.yml'
+
+jobs:
+  build_and_push:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - run: make docker_check
