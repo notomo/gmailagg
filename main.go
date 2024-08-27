@@ -10,7 +10,6 @@ import (
 
 	"github.com/notomo/gmailagg/app"
 	"github.com/notomo/gmailagg/pkg/browser"
-	"github.com/notomo/gmailagg/pkg/slackext"
 	"github.com/urfave/cli/v2"
 )
 
@@ -25,7 +24,6 @@ const (
 
 const (
 	GMAILAGG_GMAIL_CREDENTIALS = "GMAILAGG_GMAIL_CREDENTIALS"
-	GMAILAGG_SLACK_WEBHOOK_URL = "GMAILAGG_SLACK_WEBHOOK_URL"
 	INFLUXDB_TOKEN             = "INFLUXDB_TOKEN"
 )
 
@@ -61,12 +59,7 @@ func main() {
 				Action: func(c *cli.Context) error {
 					baseTransport := app.LogTransport(c.String(paramLogDir), http.DefaultTransport)
 
-					var opener app.Opener
-					if webhookURL := os.Getenv(GMAILAGG_SLACK_WEBHOOK_URL); webhookURL != "" {
-						opener = slackext.New(webhookURL, baseTransport)
-					} else {
-						opener = browser.New(os.Stdout, os.Stderr)
-					}
+					opener := browser.New(os.Stdout, os.Stderr)
 
 					if err := app.Authorize(
 						c.Context,
