@@ -25,17 +25,11 @@ func Authorize(
 	baseTransport http.RoundTripper,
 	dryRun bool,
 ) (retErr error) {
-	ctx, cancel := context.WithCancel(ctx)
-	defer cancel()
-
 	tokenWriter, err := createTokenWriter(tokenFilePath)
 	if err != nil {
 		return fmt.Errorf("new token writer: %w", err)
 	}
 	defer func() {
-		if err != nil {
-			cancel()
-		}
 		if err := tokenWriter.Close(); err != nil {
 			retErr = errors.Join(retErr, fmt.Errorf("close token writer: %w", err))
 		}

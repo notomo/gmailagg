@@ -2,12 +2,11 @@ package app
 
 import (
 	"fmt"
-	"io"
 	"os"
 	"path/filepath"
 )
 
-func createTokenReader(path string) (io.ReadCloser, error) {
+func createTokenReader(path string) (*os.File, error) {
 	tokenFile, err := os.Open(path)
 	if err != nil {
 		return nil, fmt.Errorf("open file path: %w", err)
@@ -15,7 +14,7 @@ func createTokenReader(path string) (io.ReadCloser, error) {
 	return tokenFile, nil
 }
 
-func createTokenWriter(path string) (io.WriteCloser, error) {
+func createTokenWriter(path string) (*os.File, error) {
 	if err := os.MkdirAll(filepath.Dir(path), 0700); err != nil {
 		return nil, fmt.Errorf("mkdir: %w", err)
 	}
@@ -31,7 +30,7 @@ func createTokenWriter(path string) (io.WriteCloser, error) {
 func GetDefaultTokenPath() (string, error) {
 	confDir, err := os.UserConfigDir()
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("get user config dir: %w", err)
 	}
 	return filepath.Join(confDir, "gmailagg", "token.json"), nil
 }

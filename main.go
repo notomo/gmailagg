@@ -27,11 +27,16 @@ const (
 
 func main() {
 	app.SetupLogger()
-
-	tokenFilePath, err := app.GetDefaultTokenPath()
-	if err != nil {
+	if err := run(os.Args); err != nil {
 		slog.Default().Error(err.Error())
 		os.Exit(1)
+	}
+}
+
+func run(args []string) error {
+	tokenFilePath, err := app.GetDefaultTokenPath()
+	if err != nil {
+		return err
 	}
 
 	app := &cli.App{
@@ -121,8 +126,9 @@ func main() {
 		},
 	}
 
-	if err := app.Run(os.Args); err != nil {
-		slog.Default().Error(err.Error())
-		os.Exit(1)
+	if err := app.Run(args); err != nil {
+		return err
 	}
+
+	return nil
 }
