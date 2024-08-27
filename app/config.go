@@ -1,31 +1,20 @@
 package app
 
 import (
-	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
-	"net/http"
 
 	"github.com/notomo/gmailagg/app/extractor"
 )
 
-type Influxdb struct {
-	ServerURL string `json:"serverUrl"`
-	Org       string `json:"org"`
-	Bucket    string `json:"bucket"`
-}
-
 type Config struct {
 	Measurements []extractor.Measurement `json:"measurements"`
-	Influxdb     Influxdb                `json:"influxdb"`
 }
 
 func ReadConfig(
-	ctx context.Context,
 	path string,
-	baseTransport http.RoundTripper,
 ) (_ *Config, retErr error) {
 	reader, err := createTokenReader(path)
 	if err != nil {

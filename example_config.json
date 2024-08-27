@@ -26,10 +26,5 @@
         }
       ]
     }
-  ],
-  "influxdb": {
-    "serverUrl": "http://localhost:8086",
-    "org": "example-org",
-    "bucket": "gmailagg"
-  }
+  ]
 }

@@ -8,13 +8,12 @@ import (
 	"time"
 
 	"github.com/notomo/gmailagg/pkg/gmailext"
-	"github.com/notomo/gmailagg/pkg/influxdb"
 	"google.golang.org/api/gmail/v1"
 )
 
 type Extractor struct {
 	Query   string
-	Convert func(*gmail.Message) ([]influxdb.Point, error)
+	Convert func(*gmail.Message) ([]Point, error)
 }
 
 func List(
@@ -162,14 +161,14 @@ func toExtractor(
 		"\r", "\n",
 	)
 
-	funcs := []func(*gmail.Message) (*influxdb.Point, error){}
+	funcs := []func(*gmail.Message) (*Point, error){}
 	for _, rule := range rules {
 		regex, err := regexp.Compile(rule.Pattern)
 		if err != nil {
 			return nil, err
 		}
 
-		f := func(message *gmail.Message) (*influxdb.Point, error) {
+		f := func(message *gmail.Message) (*Point, error) {
 			body, err := gmailext.StringBody(message)
 			if err != nil {
 				return nil, err
@@ -207,7 +206,7 @@ func toExtractor(
 				return nil, nil
 			}
 
-			return &influxdb.Point{
+			return &Point{
 				Measurement: measurementName,
 				Tags:        tags,
 				Fields:      fields,
@@ -217,8 +216,8 @@ func toExtractor(
 		funcs = append(funcs, f)
 	}
 
-	convert := func(message *gmail.Message) ([]influxdb.Point, error) {
-		points := []influxdb.Point{}
+	convert := func(message *gmail.Message) ([]Point, error) {
+		points := []Point{}
 		for _, f := range funcs {
 			point, err := f(message)
 			if err != nil {

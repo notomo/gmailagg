@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -11,7 +12,6 @@ import (
 
 	"github.com/notomo/gmailagg/app/extractor"
 	"github.com/notomo/gmailagg/pkg/gmailext"
-	"github.com/notomo/gmailagg/pkg/influxdb"
 	"google.golang.org/api/gmail/v1"
 )
 
@@ -20,27 +20,9 @@ func Run(
 	gmailCredentials string,
 	tokenFilePath string,
 	measurements []extractor.Measurement,
-	influxdbServerURL string,
-	influxdbAuthToken string,
-	influxdbOrg string,
-	influxdbBucket string,
 	baseTransport http.RoundTripper,
-	dryRunWriter io.Writer,
+	writer io.Writer,
 ) (retErr error) {
-	influxdbWriter := influxdb.NewWriter(
-		influxdbServerURL,
-		influxdbAuthToken,
-		influxdbOrg,
-		influxdbBucket,
-		dryRunWriter,
-		baseTransport,
-	)
-	defer func() {
-		if err := influxdbWriter.Flush(ctx); err != nil {
-			retErr = errors.Join(retErr, fmt.Errorf("flush influxdb write: %w", err))
-		}
-	}()
-
 	tokenReader, err := createTokenReader(tokenFilePath)
 	if err != nil {
 		return fmt.Errorf("new token reader: %w", err)
@@ -81,7 +63,13 @@ func Run(
 				}
 				atomic.AddInt64(&allCount, int64(count))
 
-				influxdbWriter.Write(ctx, points...)
+				encorder := json.NewEncoder(writer)
+				encorder.SetIndent("", "  ")
+				for _, p := range points {
+					if err := encorder.Encode(p); err != nil {
+						return false, err
+					}
+				}
 				return true, nil
 			},
 		); err != nil {

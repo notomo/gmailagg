@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"net/http"
 	"os"
 	"path/filepath"
 	"testing"
@@ -72,11 +71,6 @@ func TestRun(t *testing.T) {
 				},
 			},
 		},
-		"influxdb": map[string]any{
-			"serverUrl": "http://gmailagg-test-influxdb",
-			"org":       "test-org",
-			"bucket":    "test-bucket",
-		},
 	}
 	configBytes, err := json.Marshal(configMap)
 	if err != nil {
@@ -97,7 +91,7 @@ func TestRun(t *testing.T) {
 		Timestamp: "2020-01-02T00:00:00Z",
 	}
 
-	t.Run("can dry run", func(t *testing.T) {
+	t.Run("can run", func(t *testing.T) {
 		transport := httpmock.NewMockTransport()
 		defer httpmockext.AssertCalled(t, transport)
 		transport.RegisterResponder(googleoauthtest.TokenResponse())
@@ -110,7 +104,7 @@ func TestRun(t *testing.T) {
 		ctx := context.Background()
 		baseTransport := app.LogTransport(logDir, transport)
 
-		config, err := app.ReadConfig(ctx, configPath, baseTransport)
+		config, err := app.ReadConfig(configPath)
 		require.NoError(t, err)
 
 		var output bytes.Buffer
@@ -119,67 +113,21 @@ func TestRun(t *testing.T) {
 			string(gmailtest.CredentialsJSON()),
 			tokenFilePath,
 			config.Measurements,
-			config.Influxdb.ServerURL,
-			"auth-token",
-			config.Influxdb.Org,
-			config.Influxdb.Bucket,
 			baseTransport,
 			&output,
 		))
 
 		assert.Equal(t, `{
   "measurement": "measurementName",
-  "tags": [
-    {
-      "key": "tagKey1",
-      "value": "tagValue"
-    }
-  ],
-  "fields": [
-    {
-      "key": "amount",
-      "value": 2700
-    }
-  ],
+  "tags": {
+    "tagKey1": "tagValue"
+  },
+  "fields": {
+    "amount": 2700
+  },
   "at": "2020-01-02T00:00:00Z"
 }
 `, output.String())
-	})
-
-	t.Run("can run with local token file", func(t *testing.T) {
-		transport := httpmock.NewMockTransport()
-		defer httpmockext.AssertCalled(t, transport)
-		transport.RegisterResponder(googleoauthtest.TokenResponse())
-		gmailtest.RegisterMessageResponse(
-			t,
-			transport,
-			matchedMessage,
-		)
-		transport.RegisterMatcherResponder(
-			http.MethodPost,
-			"http://gmailagg-test-influxdb/api/v2/write?bucket=test-bucket&org=test-org&precision=ns",
-			httpmock.BodyContainsString(`measurementName,tagKey1=tagValue amount=2700i `+gmailtest.ToUnixMilli(t, "2020-01-02T00:00:00Z")),
-			httpmock.NewStringResponder(http.StatusOK, `{}`),
-		)
-
-		ctx := context.Background()
-		baseTransport := app.LogTransport(logDir, transport)
-
-		config, err := app.ReadConfig(ctx, configPath, baseTransport)
-		require.NoError(t, err)
-
-		require.NoError(t, app.Run(
-			ctx,
-			string(gmailtest.CredentialsJSON()),
-			tokenFilePath,
-			config.Measurements,
-			config.Influxdb.ServerURL,
-			"auth-token",
-			config.Influxdb.Org,
-			config.Influxdb.Bucket,
-			baseTransport,
-			nil,
-		))
 	})
 
 	t.Run("raises error if rule does not match with mail body", func(t *testing.T) {
@@ -204,20 +152,17 @@ others
 		ctx := context.Background()
 		baseTransport := app.LogTransport(logDir, transport)
 
-		config, err := app.ReadConfig(ctx, configPath, baseTransport)
+		config, err := app.ReadConfig(configPath)
 		require.NoError(t, err)
 
+		output := &bytes.Buffer{}
 		runErr := app.Run(
 			ctx,
 			string(gmailtest.CredentialsJSON()),
 			tokenFilePath,
 			config.Measurements,
-			config.Influxdb.ServerURL,
-			"auth-token",
-			config.Influxdb.Org,
-			config.Influxdb.Bucket,
 			baseTransport,
-			nil,
+			output,
 		)
 		assert.Contains(t, runErr.Error(), "does not matched with")
 	})

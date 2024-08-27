@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"io"
 	"log/slog"
 	"net/http"
 	"os"
@@ -24,7 +23,6 @@ const (
 
 const (
 	GMAILAGG_GMAIL_CREDENTIALS = "GMAILAGG_GMAIL_CREDENTIALS"
-	INFLUXDB_TOKEN             = "INFLUXDB_TOKEN"
 )
 
 func main() {
@@ -63,18 +61,14 @@ func main() {
 			{
 				Name: "auth",
 				Action: func(c *cli.Context) error {
-					baseTransport := app.LogTransport(c.String(paramLogDir), http.DefaultTransport)
-
-					opener := browser.New(os.Stdout, os.Stderr)
-
 					if err := app.Authorize(
 						c.Context,
 						os.Getenv(GMAILAGG_GMAIL_CREDENTIALS),
 						c.String(paramTokenPath),
-						opener,
+						browser.New(os.Stdout, os.Stderr),
 						c.Duration(paramTimeout),
 						c.Uint(paramPort),
-						baseTransport,
+						app.LogTransport(c.String(paramLogDir), http.DefaultTransport),
 						c.Bool(paramDryRun),
 					); err != nil {
 						return fmt.Errorf("authorize: %w", err)
@@ -106,45 +100,22 @@ func main() {
 			{
 				Name: "run",
 				Action: func(c *cli.Context) error {
-					ctx := c.Context
-					baseTransport := app.LogTransport(c.String(paramLogDir), http.DefaultTransport)
-					config, err := app.ReadConfig(
-						ctx,
-						c.String(paramConfigFilePath),
-						baseTransport,
-					)
+					config, err := app.ReadConfig(c.String(paramConfigFilePath))
 					if err != nil {
 						return fmt.Errorf("read config: %w", err)
 					}
 
-					var dryRunWriter io.Writer
-					if c.Bool(paramDryRun) {
-						dryRunWriter = os.Stdout
-					}
-
 					if err := app.Run(
-						ctx,
+						c.Context,
 						os.Getenv(GMAILAGG_GMAIL_CREDENTIALS),
 						c.String(paramTokenPath),
 						config.Measurements,
-						config.Influxdb.ServerURL,
-						os.Getenv(INFLUXDB_TOKEN),
-						config.Influxdb.Org,
-						config.Influxdb.Bucket,
-						baseTransport,
-						dryRunWriter,
+						app.LogTransport(c.String(paramLogDir), http.DefaultTransport),
+						os.Stdout,
 					); err != nil {
 						return fmt.Errorf("run: %w", err)
 					}
 					return nil
-				},
-				Flags: []cli.Flag{
-					&cli.BoolFlag{
-						Name:     paramDryRun,
-						Required: false,
-						Value:    false,
-						Usage:    "dry run",
-					},
 				},
 			},
 		},

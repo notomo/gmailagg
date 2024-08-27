@@ -17,5 +17,3 @@ auth_dry_run:
 	$(MAKE) _execute GMAILAGG_ARGS="auth --dry-run"
 run:
 	$(MAKE) _execute GMAILAGG_ARGS="run"
-dry_run:
-	$(MAKE) _execute GMAILAGG_ARGS="run --dry-run"
