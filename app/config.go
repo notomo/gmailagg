@@ -9,7 +9,6 @@ import (
 	"net/http"
 
 	"github.com/notomo/gmailagg/app/extractor"
-	"github.com/notomo/gmailagg/pkg/gcsext"
 )
 
 type Influxdb struct {
@@ -28,7 +27,7 @@ func ReadConfig(
 	path string,
 	baseTransport http.RoundTripper,
 ) (_ *Config, retErr error) {
-	reader, err := gcsext.NewReaderByPath(ctx, path, baseTransport)
+	reader, err := createTokenReader(path)
 	if err != nil {
 		return nil, fmt.Errorf("new config reader: %w", err)
 	}

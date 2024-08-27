@@ -30,6 +30,12 @@ const (
 func main() {
 	app.SetupLogger()
 
+	tokenFilePath, err := app.GetDefaultTokenPath()
+	if err != nil {
+		slog.Default().Error(err.Error())
+		os.Exit(1)
+	}
+
 	app := &cli.App{
 		Name: "gmailagg",
 
@@ -48,7 +54,7 @@ func main() {
 				Name:     paramTokenPath,
 				Required: false,
 				Usage:    "token file path",
-				Value:    "gs://gmailagg-oauth/token.json",
+				Value:    tokenFilePath,
 			},
 		},
 

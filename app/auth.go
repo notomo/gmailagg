@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/notomo/gmailagg/pkg/gcsext"
 	"github.com/notomo/gmailagg/pkg/gmailext"
 )
 
@@ -29,7 +28,7 @@ func Authorize(
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
-	tokenWriter, err := gcsext.NewWriterByPath(ctx, tokenFilePath, baseTransport, dryRun)
+	tokenWriter, err := createTokenWriter(tokenFilePath)
 	if err != nil {
 		return fmt.Errorf("new token writer: %w", err)
 	}

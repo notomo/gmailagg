@@ -11,7 +11,6 @@ import (
 
 	"github.com/jarcoal/httpmock"
 	"github.com/notomo/gmailagg/app"
-	"github.com/notomo/gmailagg/pkg/gcsext/gcstest"
 	"github.com/notomo/gmailagg/pkg/gmailext/gmailtest"
 	"github.com/notomo/gmailagg/pkg/googleoauthtest"
 	"github.com/notomo/gmailagg/pkg/httpmockext"
@@ -183,47 +182,6 @@ func TestRun(t *testing.T) {
 		))
 	})
 
-	t.Run("can run with gcs token object", func(t *testing.T) {
-		googleoauthtest.SetGoogleApplicationCredentials(t)
-
-		transport := httpmock.NewMockTransport()
-		defer httpmockext.AssertCalled(t, transport)
-		transport.RegisterResponder(googleoauthtest.TokenResponse())
-		gmailtest.RegisterMessageResponse(
-			t,
-			transport,
-			matchedMessage,
-		)
-		transport.RegisterMatcherResponder(
-			http.MethodPost,
-			"http://gmailagg-test-influxdb/api/v2/write?bucket=test-bucket&org=test-org&precision=ns",
-			httpmock.BodyContainsString(`measurementName,tagKey1=tagValue amount=2700i `+gmailtest.ToUnixMilli(t, "2020-01-02T00:00:00Z")),
-			httpmock.NewStringResponder(http.StatusOK, `{}`),
-		)
-		transport.RegisterResponder(gcstest.GetResponse("test-bucket", "test.json", string(googleoauthtest.TokenJSON())))
-
-		tokenFilePath := "gs://test-bucket/test.json"
-
-		ctx := context.Background()
-		baseTransport := app.LogTransport(logDir, transport)
-
-		config, err := app.ReadConfig(ctx, configPath, baseTransport)
-		require.NoError(t, err)
-
-		require.NoError(t, app.Run(
-			ctx,
-			string(gmailtest.CredentialsJSON()),
-			tokenFilePath,
-			config.Measurements,
-			config.Influxdb.ServerURL,
-			"auth-token",
-			config.Influxdb.Org,
-			config.Influxdb.Bucket,
-			baseTransport,
-			nil,
-		))
-	})
-
 	t.Run("raises error if rule does not match with mail body", func(t *testing.T) {
 		googleoauthtest.SetGoogleApplicationCredentials(t)
 
@@ -242,9 +200,6 @@ others
 				Timestamp: "2020-01-02T00:00:00Z",
 			},
 		)
-		transport.RegisterResponder(gcstest.GetResponse("test-bucket", "test.json", string(googleoauthtest.TokenJSON())))
-
-		tokenFilePath := "gs://test-bucket/test.json"
 
 		ctx := context.Background()
 		baseTransport := app.LogTransport(logDir, transport)

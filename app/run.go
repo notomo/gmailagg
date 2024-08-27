@@ -10,7 +10,6 @@ import (
 	"sync/atomic"
 
 	"github.com/notomo/gmailagg/app/extractor"
-	"github.com/notomo/gmailagg/pkg/gcsext"
 	"github.com/notomo/gmailagg/pkg/gmailext"
 	"github.com/notomo/gmailagg/pkg/influxdb"
 	"google.golang.org/api/gmail/v1"
@@ -42,7 +41,7 @@ func Run(
 		}
 	}()
 
-	tokenReader, err := gcsext.NewReaderByPath(ctx, tokenFilePath, baseTransport)
+	tokenReader, err := createTokenReader(tokenFilePath)
 	if err != nil {
 		return fmt.Errorf("new token reader: %w", err)
 	}
