@@ -49,7 +49,6 @@ func Run(
 		if err := gmailext.Iter(
 			ctx,
 			service,
-			"me",
 			e.Query,
 			func(ctx context.Context, message *gmail.Message) (bool, error) {
 				points, err := e.Convert(message)
