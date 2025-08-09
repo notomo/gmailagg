@@ -12,7 +12,7 @@ require (
 	github.com/urfave/cli/v2 v2.27.7
 	golang.org/x/oauth2 v0.30.0
 	golang.org/x/sync v0.16.0
-	google.golang.org/api v0.244.0
+	google.golang.org/api v0.246.0
 )
 
 require (
