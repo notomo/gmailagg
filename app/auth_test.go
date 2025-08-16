@@ -49,7 +49,7 @@ func TestAuthorize(t *testing.T) {
 			false,
 		))
 
-		var got map[string]string
+		var got map[string]interface{}
 		tokenJSON := fstestext.GetFileContent(t, os.DirFS(tmpDir), tokenFileName)
 		require.NoError(t, json.Unmarshal(tokenJSON, &got))
 
@@ -57,6 +57,8 @@ func TestAuthorize(t *testing.T) {
 		// ignore expiry (depends time.Now())
 		delete(want, "expiry")
 		delete(got, "expiry")
+		// ignore expires_in from token response
+		delete(got, "expires_in")
 
 		assert.Equal(t, want, got)
 	})

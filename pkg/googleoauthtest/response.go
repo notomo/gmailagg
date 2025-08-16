@@ -29,9 +29,9 @@ func TokenJSON() []byte {
 }`)
 }
 
-func Token(t *testing.T) map[string]string {
+func Token(t *testing.T) map[string]interface{} {
 	t.Helper()
-	var m map[string]string
+	var m map[string]interface{}
 	if err := json.Unmarshal(TokenJSON(), &m); err != nil {
 		t.Fatal(err)
 	}
